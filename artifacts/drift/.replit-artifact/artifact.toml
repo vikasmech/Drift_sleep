@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Drift — One-Tap Sleep Sounds"
+description = "A quiet, mobile-friendly sleep sound player with five free soundscapes, favourites, gentle sleep timers and a curated one-time-purchase collection. No account needed to listen."
+version = "1.0.0"
+id = "artifacts/drift"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19113
+
+[services.development]
+run = "pnpm --filter @workspace/drift run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/drift", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/drift/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19113"
+BASE_PATH = "/"

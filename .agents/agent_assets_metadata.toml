@@ -1,0 +1,60 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "9L2hbpMugkVgj3jnq4qdc"
+uri = "file://.local/conversation-workspace/files/deliverables/sleep-app-competitive-analysis.pdf"
+type = "pdf"
+title = "Sleep-app competitor analysis"
+description = "Nine-page written report comparing six competitors, pricing, review evidence, audio quality requirements, an MVP and validation plan."
+logical_id = "8f06f4c8-b3cc-4eb5-b19f-41451a530197"
+content_hash = "sha256:bf12a9d7bf467650ecb49247b99e90cc04df6dc068568bf75c925804a2ca741d"
+size = 25492
+mtime_ms = 1791547202413
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/conversation:aa76938c-d3fa-4f02-af67-107a8be9ffdb/8f06f4c8-b3cc-4eb5-b19f-41451a530197/482dfbdb-250f-4fb4-bc77-e8b677c41f81"
+storage_version_token = "1791547256968589"
+content_type = "application/pdf"
+source_uri = "file://deliverables/sleep-app-competitive-analysis.pdf"
+
+[[outputs]]
+id = "AS2bK6bnc9QRwxDY4mSRF"
+uri = "file://.local/conversation-workspace/files/deliverables/sleep-app-competitive-analysis.html"
+type = "html"
+title = "Sleep-app report — browser-readable copy"
+description = "The same nine-page analysis in a self-contained HTML file, with section navigation, zoom controls and clickable sources."
+logical_id = "7eac6e21-abf5-421a-a180-73440bf97e69"
+content_hash = "sha256:035b83c4e1b92d54171256a086e672c02df7be533f0a15f1be7268891b307c03"
+size = 60906
+mtime_ms = 1791547303337
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/conversation:aa76938c-d3fa-4f02-af67-107a8be9ffdb/7eac6e21-abf5-421a-a180-73440bf97e69/6cc85606-a0c6-4e06-b0f9-d5339e97b8bc"
+storage_version_token = "1791547307942307"
+content_type = "text/html"
+source_uri = "file://deliverables/sleep-app-competitive-analysis.html"
+
+[[outputs]]
+id = "Qw9PQQ1eBkOvhAGhnzV8u"
+uri = "file://generated-artifacts/audio/gentle-rain.mp3"
+type = "audio"
+title = "drift gentle rain"
+description = "Generated sound effect: A soft steady gentle rainfall ambience for a quiet bedroom, realistic delicate rain on foliage, continuous even soothing texture, no thunder, no voices, no abrupt changes, no …"
+
+[[outputs]]
+id = "Z3u08NhsbXg0oolBSsVtv"
+uri = "file://generated-artifacts/audio/night-forest.mp3"
+type = "audio"
+title = "drift night forest"
+description = "Generated sound effect: Quiet nocturnal woodland ambience, soft steady distant crickets and a gentle breeze through leaves. Delicate restful natural background texture, no loud birds, no voices, no m…"
+
+[[outputs]]
+id = "eTEfBAvDZTknmeo3i3cul"
+uri = "file://generated-artifacts/audio/ocean-waves.mp3"
+type = "audio"
+title = "drift ocean waves"
+description = "Generated sound effect: Peaceful distant ocean surf, long slow small waves gently washing a sandy beach at night. Soft broad smooth wash, no birds, no people, no music, no sharp peaks, consistent com…"
+
+[[outputs]]
+id = "Xa1HT61b5QDiBZg-xC8pd"
+uri = "file://generated-artifacts/audio/soft-ambient.mp3"
+type = "audio"
+title = "drift soft ambient"
+description = "Generated music: Extremely soft slow sustained warm ambient synthesizer chords for a peaceful night. Almost motionless, no percussion, no beat, no vocals, no melody demanding attention, gentle evolvi…"

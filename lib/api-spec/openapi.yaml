@@ -11,6 +11,38 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /audio/{name}:
+    get:
+      operationId: getSleepAudio
+      summary: Stream an original audio master
+      description: Public generated audio. Supports HTTP byte-range requests.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [gentle-rain.mp3, ocean-waves.mp3, night-forest.mp3, soft-ambient.mp3]
+        - name: Range
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Complete audio file
+          content:
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
+        "206":
+          description: Partial audio content
+        "404":
+          description: Unknown sound
+        "416":
+          description: Invalid byte range
+        "503":
+          description: Audio unavailable
   /healthz:
     get:
       operationId: healthCheck

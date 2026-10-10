@@ -1,15 +1,16 @@
-# [Project name]
+# Drift — One-Tap Sleep Sounds
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A mobile-friendly web prototype: your favourite sound, one tap, then put the phone down.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the audio API via its managed workflow
+- `pnpm --filter @workspace/drift run dev` — run Drift via its managed workflow (supplies PORT and BASE_PATH)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Audio assets use Replit App Storage. No product database, login or checkout is required for the free prototype.
 
 ## Stack
 
@@ -26,19 +27,27 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- This is a web prototype, not a native iOS app. The creator is working in the iOS Replit app; native creation was not available in this conversation.
+- Browser background/locked-screen playback and timer scheduling vary, so never claim overnight reliability without real-device testing.
+- Payments have not been connected. Premium sounds are previews only; no fake checkout or browser-local premium entitlement.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Thirty soundscapes: five free unlimited sounds and twenty-five preview-only tonal variations. Includes one-tap usual sound, favourites, sleep timer with fade, lock-screen media controls where supported, and explicit offline saving.
+Rain, ocean, forest and ambient masters are AI-generated; noise/fan are synthesized. These are not thirty unique licensed field recordings.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- “Your favourite sound, one tap, then put the phone down.”
+- Start with 24–36 carefully curated soundscapes, not hundreds of clips.
+- Prioritize seamless audio, consistent volume, offline listening and reliable locked-screen playback.
+- Keep the first five sounds free.
+- Test a one-time collection purchase before adding a subscription. Do not add subscriptions to this initial version.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Generated audio source files and processing outputs belong in ignored `generated-artifacts/`; runtime masters are served from App Storage.
+- The collection is not commercially complete until purchase verification and protected premium delivery are implemented.
 
 ## Pointers
 
