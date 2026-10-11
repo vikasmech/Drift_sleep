@@ -53,5 +53,7 @@ export const sounds: Soundscape[] = entries.map(([id, title, description, catego
 export const FREE_SOUNDS: Soundscape[] = sounds.filter((s) => s.free);
 export const CATEGORIES: Category[] = ["Rain", "Water", "Noise", "Nature", "Music"];
 export const getSound = (id: string) => sounds.find((s) => s.id === id);
+export const audioFilename = (id: string) =>
+  getSound(id)?.free ? `loop-v2-${id}.wav` : `native-${id}.mp3`;
 export const audioUrl = (id: string) =>
-  `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/audio/native-${id}.mp3`;
+  `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/audio/${audioFilename(id)}`;

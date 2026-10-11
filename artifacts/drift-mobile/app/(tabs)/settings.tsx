@@ -50,7 +50,9 @@ export default function Settings() {
         <Card><Body>Offline listening is available in the iPhone app only. This preview always streams.</Body></Card>
       ) : (
         <>
-          <Body>{readyCount} of {FREE_SOUNDS.length} free sounds saved on this phone.</Body>
+          <Body>{readyCount} of {FREE_SOUNDS.length} free sounds saved on this phone.
+            {'\n'}Each sound saves automatically on first play, so repeats do not need a connection.
+            Older downloads need one refresh to use the new continuous loops.</Body>
           <View style={{ height: 12 }} />
           {FREE_SOUNDS.map((x) => {
             const ready = !!a.offlineReady[x.id];
@@ -61,7 +63,7 @@ export default function Settings() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: c.foreground, fontFamily: fonts.sansMedium, fontSize: 15 }}>{x.title}</Text>
                   <Text style={{ color: err ? c.destructive : c.mutedForeground, fontFamily: fonts.sans, fontSize: 13 }}>
-                    {err ?? (prog != null ? `Downloading ${Math.round(prog * 100)}%` : ready ? 'Saved on this phone' : 'Streams when played')}
+                    {err ?? (prog != null ? `Downloading ${Math.round(prog * 100)}%` : ready ? 'Saved on this phone' : 'Saves on first play')}
                   </Text>
                   {prog != null ? (
                     <View style={{ height: 3, borderRadius: 2, backgroundColor: c.input, marginTop: 6 }}>

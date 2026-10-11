@@ -22,7 +22,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^(gentle-rain|ocean-waves|night-forest|soft-ambient|native-[a-z-]+)\.mp3$'
+            pattern: '^((gentle-rain|ocean-waves|night-forest|soft-ambient|native-[a-z-]+)\.mp3|loop-v2-(gentle-rain|ocean-waves|brown-noise|pink-noise|soft-fan)\.wav)$'
         - name: Range
           in: header
           schema:
@@ -32,6 +32,10 @@ paths:
           description: Complete audio file
           content:
             audio/mpeg:
+              schema:
+                type: string
+                format: binary
+            audio/wav:
               schema:
                 type: string
                 format: binary

@@ -1,2 +1,3 @@
 - [Audio preview limits](audio-preview-limits.md) — cap premium previews in the media file, not only a JavaScript timer.
 - [Native manifest verification](native-manifest-verification.md) — verify native response formats on the actual preview endpoint, not only a web screenshot.
+- [Continuous native audio](continuous-native-audio.md) — accept an initial local download rather than risk network or codec gaps at each repeat.

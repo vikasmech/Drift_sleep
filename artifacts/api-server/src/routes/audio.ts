@@ -1,16 +1,17 @@
 import { Router } from "express";
-import { audioFile, audioNames } from "../lib/audio-storage";
+import { audioFile, audioNames, loopAudioNames } from "../lib/audio-storage";
 
 const router = Router();
 
 router.get("/audio/:name", async (req, res) => {
-  const name = req.params.name.replace(/\.mp3$/, "");
-  if (!audioNames.includes(name as (typeof audioNames)[number])) {
+  const lossless = req.params.name.endsWith(".wav");
+  const name = req.params.name.replace(/\.(mp3|wav)$/, "");
+  if (!(lossless ? loopAudioNames : audioNames).includes(name)) {
     res.status(404).json({ error: "Sound not found." });
     return;
   }
   try {
-    const file = audioFile(name);
+    const file = audioFile(name, lossless ? "wav" : "mp3");
     const [metadata] = await file.getMetadata();
     const size = Number(metadata.size);
     let start = 0;
@@ -34,7 +35,7 @@ router.get("/audio/:name", async (req, res) => {
       res.status(206).set("Content-Range", `bytes ${start}-${end}/${size}`);
     }
     res.set({
-      "Content-Type": "audio/mpeg",
+      "Content-Type": lossless ? "audio/wav" : "audio/mpeg",
       "Content-Length": String(end - start + 1),
       "Accept-Ranges": "bytes",
       "Cache-Control": "public, max-age=86400",

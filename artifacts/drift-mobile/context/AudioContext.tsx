@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as FileSystem from 'expo-file-system/legacy';
 import { audioUrl, FREE_SOUNDS, getSound, sounds } from '@/constants/sounds';
+import { ensureLoopDownloaded, localAudioPath as localPath } from '@/lib/audio-cache';
 
 export type PlayStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'error';
 export const TIMER_OPTIONS = [15, 30, 45, 60, 90, 0] as const;
@@ -15,7 +16,6 @@ const FADE_MS = 8000;
 const LOAD_TIMEOUT_MS = 20000;
 const IS_NATIVE = Platform.OS !== 'web';
 const DIR = IS_NATIVE ? `${FileSystem.documentDirectory ?? ''}drift-audio/` : '';
-const localPath = (id: string) => `${DIR}native-${id}.mp3`;
 
 interface Ctx {
   hydrated: boolean;
@@ -70,6 +70,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const readyRef = useRef<Record<string, boolean>>({});
   const statusRef = useRef<PlayStatus>('idle');
   const playToken = useRef<number>(0);
+  const loadedSourceRef = useRef<string | null>(null);
+  const downloadRef = useRef<(id: string) => Promise<void>>(async () => {});
 
   const setStatusBoth = (s: PlayStatus) => { statusRef.current = s; setStatus(s); };
   const clearLoadTimer = () => { if (loadTimer.current) clearTimeout(loadTimer.current); loadTimer.current = null; };
@@ -187,7 +189,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             setDeadline(Date.now() + timerMinRef.current * 60000);
           }
         }
-        else if (st.isLoaded && statusRef.current === 'playing') setStatusBoth('paused');
+        else if (st.isLoaded && !st.isBuffering && !st.didJustFinish && statusRef.current === 'playing') setStatusBoth('paused');
       });
     }
     return playerRef.current;
@@ -199,7 +201,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const token = ++playToken.current;
     clearLoadTimer();
     const p = ensurePlayer();
-    const resumeLoaded = currentRef.current === id && statusRef.current === 'paused';
+    const resumeLoaded = loadedSourceRef.current === id && currentRef.current === id &&
+      statusRef.current === 'paused' && p.isLoaded;
     setCurrentId(id); currentRef.current = id;
     setErrorMessage(null);
     setStatusBoth('loading');
@@ -211,6 +214,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         interruptionMode: 'doNotMix',
       });
       if (token !== playToken.current) return;
+      if (IS_NATIVE && snd.free) {
+        // Local PCM avoids MP3 padding and rebuffering at every native queue transition.
+        await downloadRef.current(id);
+        if (token !== playToken.current) return;
+        if (!readyRef.current[id]) throw new Error('Could not prepare continuous audio.');
+      }
       p.volume = volumeRef.current;
       p.loop = snd.free;
       if (!resumeLoaded) {
@@ -226,6 +235,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         if (token !== playToken.current) return;
         const uri = saved ? localPath(id) : audioUrl(id);
         p.replace({ uri });
+        loadedSourceRef.current = id;
       }
       p.play();
       try {
@@ -244,7 +254,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       console.warn('Drift playback failed', e);
       clearLoadTimer();
       setDeadline(null);
-      setErrorMessage('Playback failed to start. Try again.');
+      setErrorMessage(snd.free && IS_NATIVE
+        ? 'Connect once to save this sound for continuous playback, then try again.'
+        : 'Playback failed to start. Try again.');
       setStatusBoth('error');
     }
   }, []);
@@ -296,19 +308,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     setDownloadErrors((e) => { const n = { ...e }; delete n[id]; return n; });
     setDownloadProgress((p) => ({ ...p, [id]: 0 }));
     try {
-      await FileSystem.makeDirectoryAsync(DIR, { intermediates: true }).catch(() => {});
-      const tmp = `${localPath(id)}.part`;
-      const dl = FileSystem.createDownloadResumable(audioUrl(id), tmp, {}, (pr) => {
-        const total = pr.totalBytesExpectedToWrite;
-        const frac = total > 0 ? pr.totalBytesWritten / total : 0;
-        setDownloadProgress((p) => ({ ...p, [id]: Math.min(0.99, frac) }));
+      await ensureLoopDownloaded(id, (fraction) => {
+        setDownloadProgress((p) => ({ ...p, [id]: fraction }));
       });
-      const res = await dl.downloadAsync();
-      if (!res || res.status !== 200) throw new Error('bad status');
-      await FileSystem.deleteAsync(localPath(id), { idempotent: true });
-      await FileSystem.moveAsync({ from: tmp, to: localPath(id) });
-      const info = await FileSystem.getInfoAsync(localPath(id));
-      if (!info.exists || ((info as { size?: number }).size ?? 0) <= 0) throw new Error('empty');
       markReady(id, true);
     } catch {
       await FileSystem.deleteAsync(`${localPath(id)}.part`, { idempotent: true }).catch(() => {});
@@ -318,11 +320,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       setDownloadProgress((p) => { const n = { ...p }; delete n[id]; return n; });
     }
   }, []);
+  downloadRef.current = download;
 
   const removeDownload = useCallback(async (id: string) => {
     if (!IS_NATIVE) return;
     if (currentRef.current === id) stopRef.current();
     await FileSystem.deleteAsync(localPath(id), { idempotent: true }).catch(() => {});
+    await FileSystem.deleteAsync(`${DIR}native-${id}.mp3`, { idempotent: true }).catch(() => {});
     const info = await FileSystem.getInfoAsync(localPath(id)).catch(() => null);
     markReady(id, !!info && info.exists);
   }, []);

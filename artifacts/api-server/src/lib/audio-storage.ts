@@ -28,9 +28,10 @@ export const audioNames = [
   "gentle-rain", "ocean-waves", "night-forest", "soft-ambient",
   ...nativeSoundIds.map(id => `native-${id}`),
 ];
+export const loopAudioNames = nativeSoundIds.slice(0, 5).map(id => `loop-v2-${id}`);
 
-export function audioFile(name: string) {
+export function audioFile(name: string, extension: "mp3" | "wav" = "mp3") {
   const bucket = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
   if (!bucket) throw new Error("Audio storage is not configured.");
-  return audioStorage.bucket(bucket).file(`public/drift/audio/${name}.mp3`);
+  return audioStorage.bucket(bucket).file(`public/drift/audio/${name}.${extension}`);
 }

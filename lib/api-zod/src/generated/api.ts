@@ -12,7 +12,7 @@ import * as zod from 'zod';
  * Public generated audio masters and native-ready normalized loops or bounded previews. Supports HTTP byte-range requests.
  * @summary Stream an original audio master
  */
-export const getSleepAudioPathNameRegExp = new RegExp('^(gentle-rain|ocean-waves|night-forest|soft-ambient|native-[a-z-]+)\\.mp3$');
+export const getSleepAudioPathNameRegExp = new RegExp('^((gentle-rain|ocean-waves|night-forest|soft-ambient|native-[a-z-]+)\\.mp3|loop-v2-(gentle-rain|ocean-waves|brown-noise|pink-noise|soft-fan)\\.wav)$');
 
 
 export const GetSleepAudioParams = zod.object({
