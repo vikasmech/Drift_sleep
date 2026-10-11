@@ -6,6 +6,7 @@ A mobile-friendly web prototype: your favourite sound, one tap, then put the pho
 
 - `pnpm --filter @workspace/api-server run dev` — run the audio API via its managed workflow
 - `pnpm --filter @workspace/drift run dev` — run Drift via its managed workflow (supplies PORT and BASE_PATH)
+- `pnpm --filter @workspace/drift-mobile run dev` — run the native Expo companion via its managed workflow
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -27,13 +28,13 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-- This is a web prototype, not a native iOS app. The creator is working in the iOS Replit app; native creation was not available in this conversation.
+- Keep Drift's web prototype and native iPhone companion alongside one another; neither replaces the other.
 - Browser background/locked-screen playback and timer scheduling vary, so never claim overnight reliability without real-device testing.
 - Payments have not been connected. Premium sounds are previews only; no fake checkout or browser-local premium entitlement.
 
 ## Product
 
-Thirty soundscapes: five free unlimited sounds and twenty-five preview-only tonal variations. Includes one-tap usual sound, favourites, sleep timer with fade, lock-screen media controls where supported, and explicit offline saving.
+Thirty soundscapes: five free unlimited sounds and twenty-five preview-only tonal variations. Web and native iPhone versions include one-tap usual sound, favourites, sleep timer with fade and offline saving. Native playback uses an iOS background audio session and lock-screen controls, with downloads stored in the app's documents directory.
 Rain, ocean, forest and ambient masters are AI-generated; noise/fan are synthesized. These are not thirty unique licensed field recordings.
 
 ## User preferences

@@ -16,7 +16,18 @@ export const audioStorage = new Storage({
   projectId: "",
 });
 
-export const audioNames = ["gentle-rain", "ocean-waves", "night-forest", "soft-ambient"] as const;
+export const nativeSoundIds = [
+  "gentle-rain", "ocean-waves", "brown-noise", "pink-noise", "soft-fan",
+  "rain-on-glass", "warm-rain", "distant-rain", "evening-shower", "rainy-room",
+  "quiet-cove", "distant-surf", "moonlit-sea", "soft-tide", "deep-water",
+  "white-noise", "velvet-noise", "warm-static", "cabin-fan", "airflow",
+  "night-forest", "woodland-hush", "distant-crickets", "sheltered-grove", "evening-breeze",
+  "soft-ambient", "low-glow", "quiet-orbit", "stillness", "last-light",
+];
+export const audioNames = [
+  "gentle-rain", "ocean-waves", "night-forest", "soft-ambient",
+  ...nativeSoundIds.map(id => `native-${id}`),
+];
 
 export function audioFile(name: string) {
   const bucket = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;

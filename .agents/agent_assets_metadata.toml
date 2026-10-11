@@ -37,6 +37,7 @@ uri = "file://generated-artifacts/audio/gentle-rain.mp3"
 type = "audio"
 title = "drift gentle rain"
 description = "Generated sound effect: A soft steady gentle rainfall ambience for a quiet bedroom, realistic delicate rain on foliage, continuous even soothing texture, no thunder, no voices, no abrupt changes, no …"
+logical_id = "600bae4f-b6c8-44f9-9583-3fab4eb267d9"
 
 [[outputs]]
 id = "Z3u08NhsbXg0oolBSsVtv"
@@ -44,6 +45,7 @@ uri = "file://generated-artifacts/audio/night-forest.mp3"
 type = "audio"
 title = "drift night forest"
 description = "Generated sound effect: Quiet nocturnal woodland ambience, soft steady distant crickets and a gentle breeze through leaves. Delicate restful natural background texture, no loud birds, no voices, no m…"
+logical_id = "cbe2643e-cd2f-4091-8558-8791e37c59a8"
 
 [[outputs]]
 id = "eTEfBAvDZTknmeo3i3cul"
@@ -51,6 +53,7 @@ uri = "file://generated-artifacts/audio/ocean-waves.mp3"
 type = "audio"
 title = "drift ocean waves"
 description = "Generated sound effect: Peaceful distant ocean surf, long slow small waves gently washing a sandy beach at night. Soft broad smooth wash, no birds, no people, no music, no sharp peaks, consistent com…"
+logical_id = "7762c197-c3f6-4895-97cb-d718c717dc42"
 
 [[outputs]]
 id = "Xa1HT61b5QDiBZg-xC8pd"
@@ -58,3 +61,4 @@ uri = "file://generated-artifacts/audio/soft-ambient.mp3"
 type = "audio"
 title = "drift soft ambient"
 description = "Generated music: Extremely soft slow sustained warm ambient synthesizer chords for a peaceful night. Almost motionless, no percussion, no beat, no vocals, no melody demanding attention, gentle evolvi…"
+logical_id = "9f778230-80b3-4210-8344-ac084e3c31fc"

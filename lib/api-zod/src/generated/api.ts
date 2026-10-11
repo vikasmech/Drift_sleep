@@ -9,11 +9,14 @@ import * as zod from 'zod';
 
 
 /**
- * Public generated audio. Supports HTTP byte-range requests.
+ * Public generated audio masters and native-ready normalized loops or bounded previews. Supports HTTP byte-range requests.
  * @summary Stream an original audio master
  */
+export const getSleepAudioPathNameRegExp = new RegExp('^(gentle-rain|ocean-waves|night-forest|soft-ambient|native-[a-z-]+)\\.mp3$');
+
+
 export const GetSleepAudioParams = zod.object({
-  "name": zod.enum(['gentle-rain.mp3', 'ocean-waves.mp3', 'night-forest.mp3', 'soft-ambient.mp3'])
+  "name": zod.coerce.string().regex(getSleepAudioPathNameRegExp)
 })
 
 export const GetSleepAudioHeader = zod.object({

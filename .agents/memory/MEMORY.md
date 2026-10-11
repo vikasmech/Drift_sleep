@@ -1,0 +1,1 @@
+- [Audio preview limits](audio-preview-limits.md) — cap premium previews in the media file, not only a JavaScript timer.

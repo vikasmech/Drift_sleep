@@ -46,7 +46,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetSleepAudioUrl = (name: 'gentle-rain.mp3' | 'ocean-waves.mp3' | 'night-forest.mp3' | 'soft-ambient.mp3',) => {
+export const getGetSleepAudioUrl = (name: string,) => {
 
 
 
@@ -55,10 +55,10 @@ export const getGetSleepAudioUrl = (name: 'gentle-rain.mp3' | 'ocean-waves.mp3' 
 }
 
 /**
- * Public generated audio. Supports HTTP byte-range requests.
+ * Public generated audio masters and native-ready normalized loops or bounded previews. Supports HTTP byte-range requests.
  * @summary Stream an original audio master
  */
-export const getSleepAudio = async (name: 'gentle-rain.mp3' | 'ocean-waves.mp3' | 'night-forest.mp3' | 'soft-ambient.mp3', options?: Parameters<typeof customFetch>[1]): Promise<Blob | void> => {
+export const getSleepAudio = async (name: string, options?: Parameters<typeof customFetch>[1]): Promise<Blob | void> => {
 
   return customFetch<Blob | void>(getGetSleepAudioUrl(name),
   {
@@ -73,14 +73,14 @@ export const getSleepAudio = async (name: 'gentle-rain.mp3' | 'ocean-waves.mp3' 
 
 
 
-export const getGetSleepAudioQueryKey = (name: 'gentle-rain.mp3' | 'ocean-waves.mp3' | 'night-forest.mp3' | 'soft-ambient.mp3',) => {
+export const getGetSleepAudioQueryKey = (name: string,) => {
     return [
     `/api/audio/${name}`
     ] as const;
     }
 
 
-export const getGetSleepAudioQueryOptions = <TData = Awaited<ReturnType<typeof getSleepAudio>>, TError = ErrorType<void>>(name: 'gentle-rain.mp3' | 'ocean-waves.mp3' | 'night-forest.mp3' | 'soft-ambient.mp3', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSleepAudio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetSleepAudioQueryOptions = <TData = Awaited<ReturnType<typeof getSleepAudio>>, TError = ErrorType<void>>(name: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSleepAudio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -107,7 +107,7 @@ export type GetSleepAudioQueryError = ErrorType<void>
  */
 
 export function useGetSleepAudio<TData = Awaited<ReturnType<typeof getSleepAudio>>, TError = ErrorType<void>>(
- name: 'gentle-rain.mp3' | 'ocean-waves.mp3' | 'night-forest.mp3' | 'soft-ambient.mp3', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSleepAudio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ name: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSleepAudio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
