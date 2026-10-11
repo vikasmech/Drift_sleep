@@ -490,11 +490,18 @@ function updateManifests(manifests, timestamp, baseUrl, assetsByHash) {
     manifest.createdAt = new Date(
       Number(timestamp.split('-')[0]),
     ).toISOString();
-    manifest.extra.expoClient.hostUri =
-      baseUrl.replace('https://', '') + '/' + platform;
-    manifest.extra.expoGo.debuggerHost =
-      baseUrl.replace('https://', '') + '/' + platform;
+    const publicHost = baseUrl.replace('https://', '') + basePath;
+    manifest.extra.expoClient.hostUri = publicHost;
+    manifest.extra.expoGo.debuggerHost = publicHost;
     manifest.extra.expoGo.packagerOpts.dev = false;
+    // Metro's icon URL points at its temporary localhost server during builds.
+    // Copy it into the production output instead of publishing that unreachable URL.
+    if (manifest.extra.expoClient.icon) {
+      const iconPath = path.resolve(projectRoot, manifest.extra.expoClient.icon);
+      const iconName = `app-icon${path.extname(iconPath)}`;
+      fs.copyFileSync(iconPath, path.join(projectRoot, 'static-build', iconName));
+      manifest.extra.expoClient.iconUrl = `${baseUrl}${basePath}/${iconName}`;
+    }
 
     if (manifest.assets && manifest.assets.length > 0) {
       manifest.assets.forEach((asset) => {

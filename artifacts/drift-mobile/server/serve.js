@@ -63,7 +63,7 @@ function toScriptString(value) {
     .replaceAll('&', '\\u0026');
 }
 
-function serveManifest(platform, res) {
+function serveManifest(platform, req, res) {
   const manifestPath = path.join(STATIC_ROOT, platform, 'manifest.json');
 
   if (!fs.existsSync(manifestPath)) {
@@ -75,10 +75,32 @@ function serveManifest(platform, res) {
   }
 
   const manifest = fs.readFileSync(manifestPath, 'utf-8');
-  res.writeHead(200, {
-    'content-type': 'application/json',
-    'expo-protocol-version': '1',
+  // Match Metro's Expo Go protocol, including the multipart format requested by iOS.
+  // Do not advertise protocol 1 for a manifest obtained with Metro's protocol 0.
+  const headers = {
+    'expo-protocol-version': '0',
     'expo-sfv-version': '0',
+    'cache-control': 'private, no-store',
+  };
+  if ((req.headers.accept || '').includes('multipart/mixed')) {
+    const boundary = 'drift-expo-manifest';
+    const body = Buffer.from(
+      `--${boundary}\r\n` +
+      'Content-Disposition: form-data; name="manifest"; filename="manifest"\r\n' +
+      'Content-Type: application/json\r\n\r\n' +
+      manifest + `\r\n--${boundary}--\r\n`,
+    );
+    res.writeHead(200, {
+      ...headers,
+      'content-type': `multipart/mixed; boundary="${boundary}"`,
+      'content-length': body.length,
+    });
+    res.end(body);
+    return;
+  }
+  res.writeHead(200, {
+    ...headers,
+    'content-type': 'application/expo+json',
   });
   res.end(manifest);
 }
@@ -134,10 +156,10 @@ const server = http.createServer((req, res) => {
     pathname = pathname.slice(basePath.length) || '/';
   }
 
-  if (pathname === '/' || pathname === '/manifest') {
-    const platform = req.headers['expo-platform'];
+  if (pathname === '/' || pathname === '/manifest' || pathname === '/manifest/') {
+    const platform = req.headers['expo-platform'] || url.searchParams.get('platform');
     if (platform === 'ios' || platform === 'android') {
-      return serveManifest(platform, res);
+      return serveManifest(platform, req, res);
     }
 
     if (pathname === '/') {

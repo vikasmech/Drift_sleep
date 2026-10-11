@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {},
@@ -19,18 +21,25 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-audio", {
-        "microphonePermission": false,
-        "recordAudioAndroid": false,
-        "enableBackgroundRecording": false,
-        "enableBackgroundPlayback": true
-      }],
-      ["expo-splash-screen", {
-        "image": "./assets/images/icon.png",
-        "imageWidth": 180,
-        "resizeMode": "contain",
-        "backgroundColor": "#0c0e1d"
-      }]
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": true
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#0c0e1d"
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
