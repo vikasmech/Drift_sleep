@@ -62,3 +62,17 @@ type = "audio"
 title = "drift soft ambient"
 description = "Generated music: Extremely soft slow sustained warm ambient synthesizer chords for a peaceful night. Almost motionless, no percussion, no beat, no vocals, no melody demanding attention, gentle evolvi…"
 logical_id = "9f778230-80b3-4210-8344-ac084e3c31fc"
+
+[[outputs]]
+id = "vVxvHoXlZBorna3lj6BFH"
+uri = "file://README.md"
+type = "text"
+title = "Drift — Mac Setup README"
+description = "Mac installation, iPhone build instructions, audio backend setup, and troubleshooting. Upload this file to your GitHub repository as README.md."
+logical_id = "484f1363-393b-4b7a-a5b0-3da03fae0b97"
+content_hash = "sha256:e5c8fa827de9e2dc23cfee0fae54930790b1ef7492906971806308baf475aac6"
+size = 13960
+mtime_ms = 1792003417059
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:3c4b90eb-e69c-444b-a0b0-a89bae764d4b/484f1363-393b-4b7a-a5b0-3da03fae0b97/b8b9c0fd-f1c8-4057-8a4c-3174f0225a71"
+storage_version_token = "1792003625988609"
+content_type = "text/markdown"
