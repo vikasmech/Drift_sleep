@@ -76,3 +76,17 @@ mtime_ms = 1792003417059
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:3c4b90eb-e69c-444b-a0b0-a89bae764d4b/484f1363-393b-4b7a-a5b0-3da03fae0b97/b8b9c0fd-f1c8-4057-8a4c-3174f0225a71"
 storage_version_token = "1792003625988609"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "8fiHx4f4dspm5QMf8eOT7"
+uri = "file://generated-artifacts/drift-guided-rest/original-session-scripts.html"
+type = "html"
+title = "Drift — Original NSDR & Yoga Nidra Scripts"
+description = "Three original narration drafts with timed silence cues, recording guidance and a commercial/offline-use rights checklist. Open in a browser or print to PDF."
+logical_id = "6a0b216b-2f6c-4e8b-bc17-23ff6b0784f2"
+content_hash = "sha256:6384ec27944f287e441b8a0fb02f4f9a14d6a9a71ad46a982b894fef7ed69407"
+size = 20558
+mtime_ms = 1792057696950
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:3c4b90eb-e69c-444b-a0b0-a89bae764d4b/6a0b216b-2f6c-4e8b-bc17-23ff6b0784f2/195c451a-6e91-431e-98ee-b1828a941a52"
+storage_version_token = "1792057701199268"
+content_type = "text/html"

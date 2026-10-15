@@ -44,6 +44,7 @@ Rain, ocean, forest and ambient masters are AI-generated; noise/fan are synthesi
 - Prioritize seamless audio with no audible pause between repeats, consistent volume, offline listening and reliable locked-screen playback.
 - Keep the first five sounds free.
 - Keep the UI elegant and lightweight.
+- Add NSDR and Yoga Nidra using original Drift scripts and narration with explicit commercial and offline-use rights, rather than copying third-party recordings.
 - Test a one-time collection purchase before adding a subscription. Do not add subscriptions to this initial version.
 
 ## Gotchas
