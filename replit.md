@@ -45,6 +45,7 @@ Rain, ocean, forest and ambient masters are AI-generated; noise/fan are synthesi
 - Keep the first five sounds free.
 - Keep the UI elegant and lightweight.
 - Add NSDR and Yoga Nidra using original Drift scripts and narration with explicit commercial and offline-use rights, rather than copying third-party recordings.
+- Use Swift/SwiftUI for the iPhone version. Preserve the existing Expo prototype while the native rewrite is validated in Xcode.
 - Test a one-time collection purchase before adding a subscription. Do not add subscriptions to this initial version.
 
 ## Gotchas

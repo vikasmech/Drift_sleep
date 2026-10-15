@@ -1,0 +1,9 @@
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+# Durable audio masters live in App Storage, not Git history.
+# The downloadable Mac ZIP includes these files. prepare-audio.sh restores them after a clone.
+DriftSleep/Resources/*.wav
+DriftSleep/Resources/*.part

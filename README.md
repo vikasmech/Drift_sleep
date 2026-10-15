@@ -1,5 +1,15 @@
 # Drift — One-Tap Sleep Sounds
 
+## Native Swift / SwiftUI iPhone version
+
+The native Swift rewrite is in [`artifacts/drift-mobile/swift`](artifacts/drift-mobile/swift/README.md).
+Open `DriftSleep.xcodeproj` on a Mac with Xcode 16 or later. It does not require
+Node, Expo or CocoaPods. The supplied Mac ZIP includes the five offline WAV
+loops; after a Git clone, follow its README to obtain those assets.
+This target has not yet been compiled or device-tested in Xcode.
+
+The instructions below describe the preserved React Native/Expo and web versions.
+
 **Your favourite sound, one tap, then put the phone down.**
 
 Drift includes a native iPhone app, a web prototype, and a small audio API. This

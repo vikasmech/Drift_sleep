@@ -90,3 +90,17 @@ mtime_ms = 1792057696950
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:3c4b90eb-e69c-444b-a0b0-a89bae764d4b/6a0b216b-2f6c-4e8b-bc17-23ff6b0784f2/195c451a-6e91-431e-98ee-b1828a941a52"
 storage_version_token = "1792057701199268"
 content_type = "text/html"
+
+[[outputs]]
+id = "TZc1lfxo_-yb19VkHbVA6"
+uri = "file://generated-artifacts/drift-swift/Drift-Swift-Xcode.zip"
+type = "unspecified"
+title = "Drift — SwiftUI Xcode Project"
+description = "Mac project archive with SwiftUI screens, AVFoundation playback, five bundled offline sounds, XCTest sources and setup instructions. Requires Xcode 16+; not yet compiled or device-tested."
+logical_id = "a4ca4b98-7642-43cd-bee6-31560e12b93d"
+content_hash = "sha256:27acb0f542d03011444032a6d844ecea4f7696a75f4e1c4414aba0ebb99d04e3"
+size = 7940920
+mtime_ms = 1792082184134
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:3c4b90eb-e69c-444b-a0b0-a89bae764d4b/a4ca4b98-7642-43cd-bee6-31560e12b93d/9da0b876-fba9-45bb-acc5-70453225f8c2"
+storage_version_token = "1792082222338201"
+content_type = "application/octet-stream"
