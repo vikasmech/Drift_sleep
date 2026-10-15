@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Body, Card, Chip, fonts, H2, IconBtn, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
@@ -59,7 +59,7 @@ export default function Settings() {
             const prog = a.downloadProgress[x.id];
             const err = a.downloadErrors[x.id];
             return (
-              <View key={x.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: c.border }}>
+              <View key={x.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, minHeight: 56, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: c.foreground, fontFamily: fonts.sansMedium, fontSize: 15 }}>{x.title}</Text>
                   <Text style={{ color: err ? c.destructive : c.mutedForeground, fontFamily: fonts.sans, fontSize: 13 }}>
@@ -82,7 +82,7 @@ export default function Settings() {
             accessibilityRole="button"
             disabled={anyBusy || readyCount === FREE_SOUNDS.length}
             onPress={a.downloadAll}
-            style={{ marginTop: 16, minHeight: 48, borderRadius: c.radius, backgroundColor: c.secondary, alignItems: 'center', justifyContent: 'center', opacity: anyBusy || readyCount === FREE_SOUNDS.length ? 0.45 : 1 }}
+            style={{ marginTop: 16, minHeight: 48, borderRadius: c.radius, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', opacity: anyBusy || readyCount === FREE_SOUNDS.length ? 0.45 : 1 }}
           >
             <Text style={{ color: c.foreground, fontFamily: fonts.sansSemi }}>
               {readyCount === FREE_SOUNDS.length ? 'All five saved' : 'Save all five'}

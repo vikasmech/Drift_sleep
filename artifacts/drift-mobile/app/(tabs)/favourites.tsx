@@ -12,9 +12,9 @@ export default function Favourites() {
   const items = favourites.map(getSound).filter((x): x is Soundscape => !!x);
   return (
     <Screen title="Favourites" subtitle="Sounds you keep coming back to.">
-      <View style={{ height: 20 }} />
+      <View style={{ height: 12 }} />
       {!hydrated ? (
-        [0, 1, 2].map((i) => <View key={i} style={{ height: 66, borderRadius: c.radius, backgroundColor: c.card, marginBottom: 10 }} />)
+        [0, 1, 2].map((i) => <View key={i} style={{ minHeight: 64, borderRadius: c.radius, backgroundColor: c.card, marginBottom: 10 }} />)
       ) : items.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: 56, gap: 12 }}>
           <Feather name="heart" size={32} color={c.mutedForeground} />

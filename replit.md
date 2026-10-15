@@ -43,6 +43,7 @@ Rain, ocean, forest and ambient masters are AI-generated; noise/fan are synthesi
 - Start with 24–36 carefully curated soundscapes, not hundreds of clips.
 - Prioritize seamless audio with no audible pause between repeats, consistent volume, offline listening and reliable locked-screen playback.
 - Keep the first five sounds free.
+- Keep the UI elegant and lightweight.
 - Test a one-time collection purchase before adding a subscription. Do not add subscriptions to this initial version.
 
 ## Gotchas

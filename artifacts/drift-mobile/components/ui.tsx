@@ -23,7 +23,7 @@ export function Screen({ title, subtitle, children }: { title: string; subtitle?
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScrollView
         contentInsetAdjustmentBehavior="never"
-        contentContainerStyle={{ paddingTop: top + 16, paddingBottom: bottom + 32, paddingHorizontal: 20 }}
+        contentContainerStyle={{ paddingTop: top + 20, paddingBottom: bottom + 40, paddingHorizontal: 24 }}
         showsVerticalScrollIndicator={false}
       >
         <Text style={[s.title, { color: c.foreground, fontFamily: fonts.serif }]}>{title}</Text>
@@ -45,7 +45,7 @@ export function NowBar() {
     status === 'loading' ? 'Loading' : status === 'playing' ? 'Playing' : status === 'paused' ? 'Paused'
     : status === 'ended' ? 'Preview ended' : 'Could not play';
   return (
-    <View style={[s.now, { backgroundColor: c.card, borderColor: status === 'error' ? c.destructive : c.border, borderRadius: c.radius }]}>
+    <View style={[s.now, { backgroundColor: c.card, borderColor: status === 'error' ? c.destructive : 'transparent', borderRadius: c.radius }]}>
       <View style={{ flex: 1 }}>
         <Text style={[s.nowTitle, { color: c.foreground, fontFamily: fonts.sansSemi }]}>{snd.title}</Text>
         <Text style={{ color: status === 'error' ? c.destructive : c.mutedForeground, fontFamily: fonts.sans, fontSize: 13 }}>
@@ -74,7 +74,7 @@ export function IconBtn({ name, onPress, label, color, testID, filled }: {
       accessibilityLabel={label}
       hitSlop={6}
       onPress={onPress}
-      style={({ pressed }) => [s.iconBtn, { opacity: pressed ? 0.5 : 1, backgroundColor: filled ? c.secondary : 'transparent', borderRadius: c.radius }]}
+      style={({ pressed }) => [s.iconBtn, { opacity: pressed ? 0.5 : 1, backgroundColor: filled ? c.secondary : 'transparent', borderRadius: 22 }]}
     >
       <Feather name={name} size={20} color={color ?? c.foreground} />
     </Pressable>
@@ -89,22 +89,26 @@ export function SoundRow({ sound }: { sound: Soundscape }) {
   const on = active && (status === 'playing' || status === 'loading');
   const fav = favourites.includes(sound.id);
   return (
-    <Pressable
-      testID={`sound-${sound.id}`}
-      accessibilityRole="button"
-      accessibilityLabel={`${on ? 'Pause' : 'Play'} ${sound.title}`}
-      onPress={() => toggle(sound.id)}
-      style={({ pressed }) => [s.row, { backgroundColor: active ? c.accent : c.card, borderColor: c.border, borderRadius: c.radius, opacity: pressed ? 0.8 : 1 }]}
+    <View
+      style={[s.row, { backgroundColor: active ? c.card : 'transparent', borderColor: active ? c.card : c.border, borderRadius: c.radius }]}
     >
-      <View style={[s.dot, { backgroundColor: sound.color }]}>
-        {busy ? <ActivityIndicator size="small" color={c.background} /> : <Feather name={on ? 'pause' : 'play'} size={16} color={c.background} />}
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: c.foreground, fontFamily: fonts.sansSemi, fontSize: 16 }}>{sound.title}</Text>
-        <Text numberOfLines={1} style={{ color: c.mutedForeground, fontFamily: fonts.sans, fontSize: 13, marginTop: 2 }}>
-          {sound.free ? 'Free, loops all night' : '30 second preview'} / {sound.category}
-        </Text>
-      </View>
+      <Pressable
+        testID={`sound-${sound.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`${on ? 'Pause' : 'Play'} ${sound.title}`}
+        onPress={() => toggle(sound.id)}
+        style={({ pressed }) => [s.rowPlay, { opacity: pressed ? 0.7 : 1 }]}
+      >
+        <View style={[s.dot, { backgroundColor: sound.color, opacity: active ? 1 : 0.85 }]}>
+          {busy ? <ActivityIndicator size="small" color={c.background} /> : <Feather name={on ? 'pause' : 'play'} size={16} color={c.background} />}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: c.foreground, fontFamily: fonts.sansMedium, fontSize: 16 }}>{sound.title}</Text>
+          <Text numberOfLines={1} style={{ color: c.mutedForeground, fontFamily: fonts.sans, fontSize: 13, marginTop: 2 }}>
+            {sound.free ? 'Free, loops all night' : '30 second preview'} / {sound.category}
+          </Text>
+        </View>
+      </Pressable>
       <IconBtn
         testID={`fav-${sound.id}`}
         label={fav ? `Remove ${sound.title} from favourites` : `Add ${sound.title} to favourites`}
@@ -112,7 +116,7 @@ export function SoundRow({ sound }: { sound: Soundscape }) {
         color={fav ? c.primary : c.mutedForeground}
         onPress={() => toggleFavourite(sound.id)}
       />
-    </Pressable>
+    </View>
   );
 }
 
@@ -124,7 +128,7 @@ export function Chip({ label, selected, onPress, testID }: { label: string; sele
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[s.chip, { borderRadius: c.radius, backgroundColor: selected ? c.primary : c.secondary, borderColor: selected ? c.primary : c.border }]}
+      style={[s.chip, { backgroundColor: selected ? c.primary : 'transparent', borderColor: selected ? c.primary : c.input }]}
     >
       <Text style={{ color: selected ? c.primaryForeground : c.foreground, fontFamily: fonts.sansMedium, fontSize: 14 }}>{label}</Text>
     </Pressable>
@@ -138,7 +142,7 @@ export function Card({ children }: { children: ReactNode }) {
 
 export function H2({ children }: { children: ReactNode }) {
   const c = useColors();
-  return <Text style={{ color: c.foreground, fontFamily: fonts.serifRegular, fontSize: 21, marginTop: 28, marginBottom: 10 }}>{children}</Text>;
+  return <Text style={{ color: c.foreground, fontFamily: fonts.serifRegular, fontSize: 20, marginTop: 36, marginBottom: 12 }}>{children}</Text>;
 }
 
 export function Body({ children }: { children: ReactNode }) {
@@ -153,13 +157,14 @@ export const fmt = (ms: number) => {
 };
 
 const s = StyleSheet.create({
-  title: { fontSize: 34, letterSpacing: -0.3 },
+  title: { fontSize: 34, letterSpacing: -0.3, lineHeight: 40 },
   sub: { fontSize: 15, marginTop: 4, lineHeight: 22 },
-  now: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 14, borderWidth: 1, marginTop: 18 },
+  now: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 12, paddingLeft: 16, borderWidth: 1, marginTop: 20 },
   nowTitle: { fontSize: 16 },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderWidth: 1, marginBottom: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 10, paddingLeft: 12, borderWidth: StyleSheet.hairlineWidth, marginBottom: 4, minHeight: 64 },
+  rowPlay: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 44 },
   dot: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  chip: { paddingHorizontal: 16, minHeight: 44, justifyContent: 'center', borderWidth: 1 },
-  card: { padding: 16, borderWidth: 1 },
+  chip: { paddingHorizontal: 16, minHeight: 44, justifyContent: 'center', borderWidth: 1, borderRadius: 22 },
+  card: { padding: 18, borderWidth: 0 },
 });
