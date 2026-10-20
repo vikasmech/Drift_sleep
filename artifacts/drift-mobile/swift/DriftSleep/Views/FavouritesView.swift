@@ -3,19 +3,20 @@ import SwiftUI
 struct FavouritesView: View {
     @EnvironmentObject private var store: DriftStore
 
-    private var items: [Soundscape] { Soundscape.all.filter { store.favourites.contains($0.id) } }
+    private var sounds: [Soundscape] { Soundscape.all.filter { store.favourites.contains($0.id) } }
+    private var sessions: [GuidedSession] { GuidedSession.all.filter { store.favourites.contains($0.id) } }
+    private var isEmpty: Bool { sounds.isEmpty && sessions.isEmpty }
 
     var body: some View {
         Screen(title: "Favourites") {
-            if items.isEmpty {
+            if isEmpty {
                 Card {
                     Image(systemName: "heart").font(.largeTitle).foregroundStyle(Theme.amber).accessibilityHidden(true)
-                    Text("Nothing saved yet").font(.headline).foregroundStyle(Theme.text)
-                    Text("Tap the heart on any sound in Sounds and it will wait for you here.")
-                        .foregroundStyle(Theme.muted)
+                    Text("Nothing saved").font(.headline).foregroundStyle(Theme.text)
                 }
             } else {
-                ForEach(items) { SoundRow(sound: $0) }
+                ForEach(sessions) { GuidedRow(session: $0) }
+                ForEach(sounds) { SoundRow(sound: $0) }
             }
         }
     }

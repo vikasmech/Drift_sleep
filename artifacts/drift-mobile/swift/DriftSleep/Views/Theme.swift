@@ -7,16 +7,16 @@ enum Theme {
         let sb = v == 0 ? 0 : 2 * (1 - ln / v)
         return Color(hue: h / 360, saturation: sb, brightness: v)
     }
-    static let background = hsl(233, 40, 8)
-    static let card = hsl(233, 34, 12)
-    static let secondary = hsl(233, 30, 17)
-    static let text = hsl(38, 40, 90)
-    static let amber = hsl(38, 72, 72)
-    static let onAmber = hsl(233, 40, 10)
-    static let muted = hsl(232, 18, 66)
-    static let accent = hsl(250, 34, 24)
-    static let danger = hsl(8, 60, 58)
-    static let border = hsl(233, 26, 18)
+    static let background = Color.black
+    static let card = Color.white.opacity(0.06)
+    static let secondary = Color.white.opacity(0.12)
+    static let text = Color.white
+    static let amber = Color.white
+    static let onAmber = Color.black
+    static let muted = Color.white.opacity(0.45)
+    static let accent = Color.white.opacity(0.08)
+    static let danger = Color(red: 1, green: 0.55, blue: 0.48)
+    static let border = Color.white.opacity(0.1)
 }
 
 struct Card<Content: View>: View {
@@ -41,6 +41,8 @@ struct Screen<Content: View>: View {
             }
             .background(Theme.background.ignoresSafeArea())
             .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
 }

@@ -12,7 +12,10 @@ struct DriftSleepApp: App {
                 .environmentObject(store)
                 .preferredColorScheme(.dark)
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { store.checkDeadline() }
+                    if phase == .active {
+                        store.checkDeadline()
+                        store.onForeground()
+                    }
                 }
         }
     }

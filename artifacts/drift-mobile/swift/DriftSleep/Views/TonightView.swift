@@ -3,67 +3,99 @@ import SwiftUI
 struct TonightView: View {
     @EnvironmentObject private var store: DriftStore
 
-    private var usual: Soundscape { store.usualSound }
-    private var showingUsual: Bool { store.currentID == usual.id }
-    private var isPlaying: Bool { showingUsual && store.state == .playing }
+    private var session: GuidedSession? { GuidedSession.find(store.selectedID) }
+    private var sound: Soundscape { store.selectedSound }
+    private var title: String { session?.title ?? sound.title }
+    private var showing: Bool { store.currentID == store.selectedID }
+    private var isPlaying: Bool { showing && (store.state == .playing || store.state == .loading) }
 
     var body: some View {
-        Screen(title: "Tonight") {
-            Card {
-                Text("Your usual").font(.subheadline).foregroundStyle(Theme.muted)
-                Text(usual.title).font(.largeTitle.weight(.semibold)).foregroundStyle(Theme.text)
-                Text(usual.detail).foregroundStyle(Theme.muted)
-                HStack(spacing: 12) {
-                    Button {
-                        if showingUsual { store.toggle(usual) } else { store.play(usual) }
-                    } label: {
-                        Label(label, systemImage: isPlaying || (showingUsual && store.state == .loading) ? "pause.fill" : "play.fill")
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack(spacing: 28) {
+                Text(title)
+                    .font(.title3)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Button { store.toggleFavourite(store.selectedID) } label: {
+                    Image(systemName: store.favourites.contains(store.selectedID) ? "heart.fill" : "heart")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel(store.favourites.contains(store.selectedID) ? "Remove favourite" : "Add favourite")
+                if isPlaying {
+                    Waveform(samples: store.wave, time: store.waveTime)
+                        .frame(height: 140)
+                        .padding(.horizontal, 28)
+                        .onTapGesture { store.playSelected() }
+                        .accessibilityLabel("Pause")
+                } else {
+                    Button { store.playSelected() } label: {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 156, height: 156)
+                            .overlay(
+                                Text(showing && store.state == .paused ? "resume" : "play")
+                                    .font(.title3)
+                                    .foregroundStyle(.black)
+                            )
                     }
-                    .buttonStyle(AmberButtonStyle())
-                    if store.currentID != nil {
-                        Button { store.stop() } label: { Label("Stop", systemImage: "stop.fill") }
-                            .buttonStyle(AmberButtonStyle(filled: false))
-                    }
+                    .accessibilityLabel(showing && store.state == .paused ? "Resume" : "Play")
                 }
-                if store.state == .loading, showingUsual {
-                    HStack { ProgressView().tint(Theme.amber); Text("Getting your sound ready").foregroundStyle(Theme.muted) }
+                if showing, store.state == .error {
+                    Text(store.errorMessage ?? "Could not play.")
+                        .font(.footnote)
+                        .foregroundStyle(Theme.danger)
+                        .multilineTextAlignment(.center)
+                    Button("Retry") { store.playSelected() }
+                        .font(.footnote)
+                        .foregroundStyle(.white)
                 }
-                if store.state == .error, showingUsual {
-                    Text(store.errorMessage ?? "Could not play.").font(.footnote).foregroundStyle(Theme.danger)
-                    Button("Retry") { store.play(usual) }.buttonStyle(AmberButtonStyle())
-                }
-                if isPlaying, let left = store.remainingSeconds {
-                    Text(left > 0 ? "Stops in \(clock(left))" : "Stopping").font(.title3.monospacedDigit()).foregroundStyle(Theme.amber)
-                        .accessibilityLabel("Stops in \(clock(left))")
+                if isPlaying {
+                    Button("Stop") { store.stop() }
+                        .font(.footnote)
+                        .foregroundStyle(.white.opacity(0.45))
                 }
             }
-            if let other = store.currentSound, other.id != usual.id {
-                Card {
-                    Text("Also selected").font(.subheadline).foregroundStyle(Theme.muted)
-                    Text(other.title).font(.headline).foregroundStyle(Theme.text)
-                    Text(other.isFree ? "Playing without limits." : "30-second preview, then it ends. No timer applies.")
-                        .font(.footnote).foregroundStyle(Theme.muted)
-                    if store.state == .error {
-                        Text(store.errorMessage ?? "Could not play.").font(.footnote).foregroundStyle(Theme.danger)
-                        Button("Retry") { store.play(other) }.buttonStyle(AmberButtonStyle())
-                    }
-                }
-            }
-            Card {
-                Text("Sleep timer").font(.headline).foregroundStyle(Theme.text)
-                TimerPicker()
-                Text("Sound fades gently over the last 8 seconds, then stops. Applies to free sounds.")
-                    .font(.footnote).foregroundStyle(Theme.muted)
-            }
+            .padding(.horizontal, 28)
         }
     }
+}
 
-    private var label: String {
-        guard showingUsual else { return "Play" }
-        switch store.state {
-        case .playing, .loading: return "Pause"
-        case .paused: return "Resume"
-        default: return "Play"
+struct Waveform: View {
+    var samples: [CGFloat]
+    var time: CGFloat
+
+    var body: some View {
+        Canvas { context, size in
+            let midY = size.height / 2
+            let columns = 36
+            let rows = 11
+            let count = max(samples.count, 1)
+            for column in 0..<columns {
+                let nx = CGFloat(column) / CGFloat(columns - 1)
+                let index = min(count - 1, Int(nx * CGFloat(count - 1)))
+                let level = samples[index]
+                let envelope = sin(nx * .pi)
+                let travel = sin(nx * .pi * 4 + time * 2.4)
+                let center = ((level - 0.45) * 0.7 + travel * (0.25 + level * 0.75)) * envelope
+                let thickness = 0.07 + level * 0.38
+                for row in 0..<rows {
+                    let ny = (CGFloat(row) / CGFloat(rows - 1)) * 2 - 1
+                    let band = abs(ny - center)
+                    guard band < thickness * envelope + 0.04 else { continue }
+                    let fade = (1 - band) * (0.35 + level * 0.65) * envelope
+                    let dot = CGRect(
+                        x: nx * size.width - 1.4,
+                        y: midY + ny * size.height * 0.46 - 1.4,
+                        width: 2.8,
+                        height: 2.8
+                    )
+                    context.fill(Path(ellipseIn: dot), with: .color(.white.opacity(0.2 + 0.8 * fade)))
+                }
+            }
         }
+        .animation(.linear(duration: 0.08), value: samples)
     }
 }

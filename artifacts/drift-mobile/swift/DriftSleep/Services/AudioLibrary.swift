@@ -29,17 +29,19 @@ final class AudioLibrary {
         session = URLSession(configuration: config)
     }
 
-    func localURL(_ sound: Soundscape) -> URL {
-        directory.appendingPathComponent(sound.filename)
+    func localURL(_ sound: Soundscape, filename: String? = nil) -> URL {
+        directory.appendingPathComponent(filename ?? sound.filename)
     }
 
     func bundledURL(_ sound: Soundscape) -> URL? {
-        let file = sound.filename as NSString
-        return Bundle.main.url(forResource: file.deletingPathExtension, withExtension: file.pathExtension)
+        for name in sound.playableFilenames {
+            if let url = locateInBundle(name) { return url }
+        }
+        return nil
     }
 
     func isSaved(_ sound: Soundscape) -> Bool {
-        sound.isFree && (FileManager.default.fileExists(atPath: localURL(sound).path) || bundledURL(sound) != nil)
+        sound.isFree && (cachedURL(sound) != nil || bundledURL(sound) != nil)
     }
 
     static func serverURL(_ value: String) -> URL? {
@@ -51,11 +53,7 @@ final class AudioLibrary {
 
     func ensure(_ sound: Soundscape, server: String) async throws -> URL {
         guard sound.isFree else { throw LibraryError.previewOnly }
-        let saved = localURL(sound)
-        if FileManager.default.fileExists(atPath: saved.path) {
-            do { try validate(saved, freeLoop: true); return saved }
-            catch { /* Keep a corrupt cache entry until its replacement is valid. */ }
-        }
+        if let cached = cachedURL(sound) { return cached }
         if let bundled = bundledURL(sound) {
             try validate(bundled, freeLoop: true)
             return bundled
@@ -67,32 +65,18 @@ final class AudioLibrary {
             values.isExcludedFromBackup = true
             var folder = directory
             try folder.setResourceValues(values)
-            let destination = localURL(sound)
-            let temporary = directory.appendingPathComponent(UUID().uuidString + ".part")
-            defer { try? FileManager.default.removeItem(at: temporary) }
+            if let cached = cachedURL(sound) { return cached }
             if let bundled = bundledURL(sound) {
-                try FileManager.default.copyItem(at: bundled, to: temporary)
-            } else {
-                guard let base = Self.serverURL(server) else { throw LibraryError.invalidServer }
-                let url = base.appendingPathComponent("api/audio").appendingPathComponent(sound.filename)
-                let (download, response) = try await session.download(from: url)
-                defer { try? FileManager.default.removeItem(at: download) }
-                guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                    throw LibraryError.unavailable
-                }
-                let mime = http.mimeType?.lowercased() ?? ""
-                guard mime.hasPrefix("audio/") || mime == "application/octet-stream" else {
-                    throw LibraryError.invalidAudio
-                }
-                try FileManager.default.moveItem(at: download, to: temporary)
+                try validate(bundled, freeLoop: true)
+                return bundled
             }
-            try validate(temporary, freeLoop: true)
-            if FileManager.default.fileExists(atPath: destination.path) {
-                _ = try FileManager.default.replaceItemAt(destination, withItemAt: temporary)
-            } else {
-                try FileManager.default.moveItem(at: temporary, to: destination)
+            guard Self.serverURL(server) != nil else { throw LibraryError.invalidServer }
+            var lastError: Error = LibraryError.unavailable
+            for name in sound.playableFilenames {
+                do { return try await downloadAndStore(sound: sound, server: server, filename: name) }
+                catch { lastError = error }
             }
-            return destination
+            throw lastError
         }
         pending[sound.id] = task
         defer { pending[sound.id] = nil }
@@ -100,14 +84,8 @@ final class AudioLibrary {
     }
 
     func preview(_ sound: Soundscape, server: String) async throws -> URL {
-        guard !sound.isFree, let base = Self.serverURL(server) else { throw LibraryError.invalidServer }
-        let url = base.appendingPathComponent("api/audio").appendingPathComponent(sound.filename)
-        let (temporary, response) = try await session.download(from: url)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-              (http.mimeType ?? "").hasPrefix("audio/") else {
-            try? FileManager.default.removeItem(at: temporary)
-            throw LibraryError.unavailable
-        }
+        guard !sound.isFree, Self.serverURL(server) != nil else { throw LibraryError.invalidServer }
+        let (temporary, _) = try await fetchAudio(server: server, filename: sound.filename)
         do {
             try validate(temporary, freeLoop: false)
             return temporary
@@ -121,9 +99,12 @@ final class AudioLibrary {
         let audio = try AVAudioPlayer(contentsOf: url)
         guard audio.duration.isFinite, audio.duration > 0 else { throw LibraryError.invalidAudio }
         if freeLoop {
-            let file = try AVAudioFile(forReading: url)
-            guard file.fileFormat.settings[AVFormatIDKey] as? UInt32 == kAudioFormatLinearPCM,
-                  audio.duration >= 20, audio.duration <= 60 else { throw LibraryError.invalidAudio }
+            guard audio.duration >= 20, audio.duration <= 60 else { throw LibraryError.invalidAudio }
+            if url.pathExtension.lowercased() == "wav" {
+                let file = try AVAudioFile(forReading: url)
+                let format = (file.fileFormat.settings[AVFormatIDKey] as? NSNumber)?.uint32Value
+                guard format == kAudioFormatLinearPCM else { throw LibraryError.invalidAudio }
+            }
         } else {
             // Reject full premium masters: a timer alone is not an access boundary.
             guard audio.duration <= 31 else { throw LibraryError.invalidAudio }
@@ -133,8 +114,78 @@ final class AudioLibrary {
     func remove(_ sound: Soundscape) throws {
         guard sound.isFree else { return }
         guard pending[sound.id] == nil else { return }
-        if FileManager.default.fileExists(atPath: localURL(sound).path) {
-            try FileManager.default.removeItem(at: localURL(sound))
+        for name in sound.playableFilenames {
+            let url = localURL(sound, filename: name)
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
         }
+    }
+
+    private func cachedURL(_ sound: Soundscape) -> URL? {
+        for name in sound.playableFilenames {
+            let url = localURL(sound, filename: name)
+            guard FileManager.default.fileExists(atPath: url.path) else { continue }
+            do {
+                try validate(url, freeLoop: true)
+                return url
+            } catch {
+                continue
+            }
+        }
+        return nil
+    }
+
+    private func locateInBundle(_ filename: String) -> URL? {
+        let file = filename as NSString
+        let name = file.deletingPathExtension
+        let ext = file.pathExtension
+        if let url = Bundle.main.url(forResource: name, withExtension: ext) { return url }
+        if let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Resources") {
+            return url
+        }
+        guard let enumerator = FileManager.default.enumerator(
+            at: Bundle.main.bundleURL,
+            includingPropertiesForKeys: nil
+        ) else { return nil }
+        for case let url as URL in enumerator where url.lastPathComponent == filename {
+            return url
+        }
+        return nil
+    }
+
+    private func downloadAndStore(sound: Soundscape, server: String, filename: String) async throws -> URL {
+        let destination = localURL(sound, filename: filename)
+        let temporary = directory.appendingPathComponent(UUID().uuidString + ".part")
+        defer { try? FileManager.default.removeItem(at: temporary) }
+        let (download, _) = try await fetchAudio(server: server, filename: filename)
+        defer { try? FileManager.default.removeItem(at: download) }
+        if FileManager.default.fileExists(atPath: temporary.path) {
+            try FileManager.default.removeItem(at: temporary)
+        }
+        try FileManager.default.moveItem(at: download, to: temporary)
+        try validate(temporary, freeLoop: true)
+        if FileManager.default.fileExists(atPath: destination.path) {
+            _ = try FileManager.default.replaceItemAt(destination, withItemAt: temporary)
+        } else {
+            try FileManager.default.moveItem(at: temporary, to: destination)
+        }
+        return destination
+    }
+
+    private func fetchAudio(server: String, filename: String) async throws -> (URL, HTTPURLResponse) {
+        guard let base = Self.serverURL(server) else { throw LibraryError.invalidServer }
+        let url = base.appendingPathComponent("api/audio").appendingPathComponent(filename)
+        let (download, response) = try await session.download(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            try? FileManager.default.removeItem(at: download)
+            throw LibraryError.unavailable
+        }
+        let mime = http.mimeType?.lowercased() ?? ""
+        guard mime.hasPrefix("audio/") || mime == "application/octet-stream" else {
+            try? FileManager.default.removeItem(at: download)
+            throw LibraryError.invalidAudio
+        }
+        return (download, http)
     }
 }

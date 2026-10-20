@@ -4,62 +4,58 @@ struct SoundRow: View {
     @EnvironmentObject private var store: DriftStore
     let sound: Soundscape
 
-    private var isCurrent: Bool { store.currentID == sound.id }
-    private var active: Bool { isCurrent && (store.state == .playing || store.state == .loading) }
-    private var status: String? {
-        guard isCurrent else { return nil }
-        switch store.state {
-        case .loading: return "Loading"
-        case .playing: return "Playing"
-        case .paused: return "Paused"
-        case .ended: return "Preview finished"
-        case .error: return store.errorMessage ?? "Could not play"
-        case .idle: return nil
-        }
+    private var active: Bool {
+        store.currentID == sound.id && (store.state == .playing || store.state == .loading)
+    }
+    private var line: String {
+        sound.detail.split(separator: ".").first.map(String.init) ?? sound.detail
     }
 
     var body: some View {
-        Card {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(sound.title).font(.headline).foregroundStyle(Theme.text)
-                    Text(sound.detail).font(.subheadline).foregroundStyle(Theme.muted)
-                    Text(sound.isFree ? "\(sound.category) · Free, unlimited" : "\(sound.category) · 30-second preview only")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(sound.isFree ? Theme.amber : Theme.muted)
-                }
-                Spacer(minLength: 0)
-                VStack(spacing: 4) {
-                    Button { store.toggle(sound) } label: {
-                        Image(systemName: active ? "pause.fill" : "play.fill")
-                            .font(.title3).foregroundStyle(Theme.onAmber)
-                            .frame(width: 48, height: 48).background(Theme.amber, in: Circle())
+        HStack(spacing: 8) {
+            Button { store.selectSound(sound, autoplay: true) } label: {
+                HStack(spacing: 16) {
+                    Image(systemName: icon)
+                        .font(.body)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .frame(width: 28)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(sound.title)
+                            .font(.body)
+                            .foregroundStyle(.white)
+                        Text(line)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.45))
+                            .lineLimit(1)
                     }
-                    .accessibilityLabel(active ? "Pause \(sound.title)" : (sound.isFree ? "Play \(sound.title)" : "Preview \(sound.title)"))
-                    Button { store.toggleFavourite(sound) } label: {
-                        Image(systemName: store.favourites.contains(sound.id) ? "heart.fill" : "heart")
-                            .foregroundStyle(Theme.amber).frame(width: 44, height: 44)
+                    Spacer(minLength: 0)
+                    if active {
+                        Image(systemName: "waveform")
+                            .foregroundStyle(.white)
                     }
-                    .accessibilityLabel(store.favourites.contains(sound.id) ? "Remove \(sound.title) from favourites" : "Add \(sound.title) to favourites")
                 }
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
             }
-            if let status {
-                HStack(spacing: 8) {
-                    if store.state == .loading { ProgressView().tint(Theme.amber) }
-                    Text(status).font(.footnote)
-                        .foregroundStyle(store.state == .error ? Theme.danger : Theme.muted)
-                    if isCurrent, store.state == .playing || store.state == .paused || store.state == .error || store.state == .ended {
-                        Spacer()
-                        Button(store.state == .error ? "Retry" : "Stop") {
-                            if store.state == .error { store.play(sound) } else { store.stop() }
-                        }.buttonStyle(AmberButtonStyle(filled: false))
-                    }
-                }
-                if isCurrent, store.state == .playing, sound.isFree, let left = store.remainingSeconds {
-                    Text("Fades out in \(clock(left))").font(.footnote.monospacedDigit()).foregroundStyle(Theme.amber)
-                }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Play \(sound.title)")
+            Button { store.toggleFavourite(sound) } label: {
+                Image(systemName: store.favourites.contains(sound.id) ? "heart.fill" : "heart")
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(store.favourites.contains(sound.id) ? "Remove \(sound.title) from favourites" : "Add \(sound.title) to favourites")
         }
-        .accessibilityElement(children: .contain)
+    }
+
+    private var icon: String {
+        switch sound.category {
+        case "Rain": return "cloud.rain"
+        case "Water": return "water.waves"
+        case "Nature": return "leaf"
+        case "Music": return "moon"
+        default: return "waveform"
+        }
     }
 }

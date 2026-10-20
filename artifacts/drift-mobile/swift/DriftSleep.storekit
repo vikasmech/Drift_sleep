@@ -1,0 +1,41 @@
+{
+  "identifier" : "A7F3C1E2",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "B19E4D70",
+      "localizations" : [
+        {
+          "description" : "Unlock the full Drift library after the 7-day preview.",
+          "displayName" : "Drift Plus",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.drift.sleep.plus",
+      "referenceName" : "Drift Plus",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "1234567891",
+    "_developerTeamID" : "ABCDE12345",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

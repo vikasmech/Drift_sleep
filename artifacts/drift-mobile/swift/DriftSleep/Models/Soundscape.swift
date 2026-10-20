@@ -8,6 +8,10 @@ struct Soundscape: Identifiable, Equatable {
     let isFree: Bool
 
     var filename: String { isFree ? "loop-v2-\(id).wav" : "native-\(id).mp3" }
+    /// Published backend currently serves native MP3s; WAV loop-v2 routes 404.
+    var playableFilenames: [String] {
+        isFree ? ["loop-v2-\(id).wav", "native-\(id).mp3"] : ["native-\(id).mp3"]
+    }
 
     static let all: [Soundscape] = [
         .init(id: "gentle-rain", title: "Gentle rain", detail: "A soft, steady shower. Nothing to think about.", category: "Rain", isFree: true),
