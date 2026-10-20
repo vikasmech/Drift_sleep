@@ -1,34 +1,38 @@
 import SwiftUI
 
 struct SoundsView: View {
-    @State private var category: String?
-
-    private var sounds: [Soundscape] {
-        Soundscape.all.filter { category == nil || $0.category == category }
-    }
+    @EnvironmentObject private var store: DriftStore
 
     var body: some View {
-        Screen(title: "Sounds") {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    chip("All", nil)
-                    ForEach(Soundscape.categories, id: \.self) { chip($0, $0) }
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+                    Text("Find your quiet")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(Soundscape.all) { SoundRow(sound: $0) }
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Rest")
+                            .font(.title3)
+                            .foregroundStyle(.white)
+                            .padding(.bottom, 8)
+                        ForEach(GuidedSession.all) { GuidedRow(session: $0) }
+                    }
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Sleep timer")
+                            .font(.title3)
+                            .foregroundStyle(.white)
+                        TimerPicker()
+                    }
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 12)
+                .padding(.bottom, 32)
             }
-            Text("Five sounds are free and unlimited. The other \(Soundscape.all.count - Soundscape.free.count) are 30-second previews only.")
-                .font(.footnote).foregroundStyle(Theme.muted)
-            ForEach(sounds) { SoundRow(sound: $0) }
+            .background(Color.black.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
         }
-    }
-
-    private func chip(_ title: String, _ value: String?) -> some View {
-        let on = category == value
-        return Button { category = value } label: {
-            Text(title).font(.subheadline.weight(.medium))
-                .foregroundStyle(on ? Theme.onAmber : Theme.text)
-                .padding(.horizontal, 16).frame(minHeight: 44)
-                .background(on ? Theme.amber : Theme.secondary, in: Capsule())
-        }
-        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

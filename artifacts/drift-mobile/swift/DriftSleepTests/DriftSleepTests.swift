@@ -2,6 +2,26 @@ import XCTest
 @testable import DriftSleep
 
 final class DriftSleepTests: XCTestCase {
+    func testSevenDayPreviewExpiresOnTheFollowingWeek() {
+        let start = Date(timeIntervalSince1970: 1_000_000)
+        XCTAssertEqual(TrialPolicy.daysRemaining(start: start, now: start), 7)
+        XCTAssertTrue(TrialPolicy.isActive(start: start, now: start.addingTimeInterval(7 * 86_400 - 1)))
+        XCTAssertEqual(TrialPolicy.daysRemaining(start: start, now: start.addingTimeInterval(6 * 86_400 + 3_600)), 1)
+        XCTAssertFalse(TrialPolicy.isActive(start: start, now: start.addingTimeInterval(7 * 86_400)))
+        XCTAssertEqual(TrialPolicy.daysRemaining(start: start, now: start.addingTimeInterval(7 * 86_400)), 0)
+    }
+
+    func testGuidedRestSessionsPlayOnceToTheirOwnEnding() {
+        XCTAssertEqual(GuidedSession.all.map(\.id), ["little-space", "room-to-rest", "nothing-more-tonight"])
+        XCTAssertEqual(GuidedSession.all.map(\.practice), ["NSDR", "NSDR", "Yoga Nidra"])
+        XCTAssertEqual(GuidedSession.all.map(\.duration), [600, 1200, 1200])
+        for session in GuidedSession.all {
+            XCTAssertEqual(session.segments.first?.start, 0)
+            XCTAssertLessThan(session.segments.last?.start ?? 0, session.duration)
+            XCTAssertFalse(session.segments.contains { $0.text.contains("00:") || $0.text.contains("Production") })
+        }
+    }
+
     func testCataloguePreservesFiveFreeSounds() {
         XCTAssertEqual(Soundscape.all.count, 30)
         XCTAssertEqual(Set(Soundscape.all.map(\.id)).count, 30)

@@ -10,6 +10,7 @@
   </TestAction>
   <LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugServiceExtension="internal" allowLocationSimulation="YES">
     <BuildableProductRunnable runnableDebuggingMode="0"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="A20000000000000000000001" BuildableName="DriftSleep.app" BlueprintName="DriftSleep" ReferencedContainer="container:DriftSleep.xcodeproj"/></BuildableProductRunnable>
+    <StoreKitConfigurationFileReference identifier = "../../../DriftSleep.storekit"></StoreKitConfigurationFileReference>
   </LaunchAction>
   <ProfileAction buildConfiguration="Release" shouldUseLaunchSchemeArgsEnv="YES" savedToolIdentifier="" useCustomWorkingDirectory="NO" debugDocumentVersioning="YES"><BuildableProductRunnable runnableDebuggingMode="0"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="A20000000000000000000001" BuildableName="DriftSleep.app" BlueprintName="DriftSleep" ReferencedContainer="container:DriftSleep.xcodeproj"/></BuildableProductRunnable></ProfileAction>
   <AnalyzeAction buildConfiguration="Debug"/>
