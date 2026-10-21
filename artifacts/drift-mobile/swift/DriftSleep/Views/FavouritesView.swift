@@ -15,8 +15,10 @@ struct FavouritesView: View {
                     Text("Nothing saved").font(.headline).foregroundStyle(Theme.text)
                 }
             } else {
-                ForEach(sessions) { GuidedRow(session: $0) }
-                ForEach(sounds) { SoundRow(sound: $0) }
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                    ForEach(sessions) { GuidedTile(session: $0) }
+                    ForEach(sounds) { SoundTile(sound: $0) }
+                }
             }
         }
     }

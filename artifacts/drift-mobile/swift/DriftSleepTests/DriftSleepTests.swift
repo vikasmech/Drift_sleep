@@ -15,6 +15,7 @@ final class DriftSleepTests: XCTestCase {
         XCTAssertEqual(GuidedSession.all.map(\.id), ["little-space", "room-to-rest", "nothing-more-tonight"])
         XCTAssertEqual(GuidedSession.all.map(\.practice), ["NSDR", "NSDR", "Yoga Nidra"])
         XCTAssertEqual(GuidedSession.all.map(\.duration), [600, 1200, 1200])
+        XCTAssertEqual(GuidedSession.all.map(\.recording), ["nsdr", "nsdr", "yoga-nidra"])
         for session in GuidedSession.all {
             XCTAssertEqual(session.segments.first?.start, 0)
             XCTAssertLessThan(session.segments.last?.start ?? 0, session.duration)

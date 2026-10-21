@@ -12,6 +12,19 @@ struct GuidedSession: Identifiable, Equatable {
     let practice: String
     let duration: TimeInterval
     let segments: [GuidedSegment]
+    let recording: String?
+
+    var recordingURL: URL? {
+        guard let recording else { return nil }
+        let bundle = Bundle.main
+        let candidates = [
+            bundle.url(forResource: recording, withExtension: "mp3"),
+            bundle.url(forResource: recording, withExtension: "mp3", subdirectory: "Resources"),
+            bundle.bundleURL.appendingPathComponent("\(recording).mp3"),
+            bundle.bundleURL.appendingPathComponent("Resources/\(recording).mp3")
+        ]
+        return candidates.compactMap { $0 }.first { FileManager.default.fileExists(atPath: $0.path) }
+    }
 
     var minutes: Int { Int(duration / 60) }
 
@@ -36,7 +49,8 @@ struct GuidedSession: Identifiable, Equatable {
             .init(start: 420, text: "For a little while, there will be fewer words. Thoughts may arrive. You do not need to finish them or push them away. Whenever you notice that you have wandered, return to a point of contact beneath you, or to an ordinary breath. Begin again as gently as you can."),
             .init(start: 480, text: "There is no score for this rest. Being distracted does not mean you have done it wrong. Notice one thing that is here now: a sound, the touch of clothing, or the movement of a breath. Let that be enough for the next few moments."),
             .init(start: 540, text: "Begin to notice more of the room around you. Feel your fingers and toes, and move them if you wish. Let your eyes open when you are ready. Before sitting or standing, take your time and check how you feel. This session is ending. You can return to your day at your own pace.")
-        ]
+        ],
+        recording: "nsdr"
     )
 
     private static let roomToRest = GuidedSession(
@@ -56,7 +70,8 @@ struct GuidedSession: Identifiable, Equatable {
             .init(start: 840, text: "Now there is less to follow. You might sense the body as a whole, or stay with one comfortable point of contact. Sounds can come and go. Thoughts can come and go. You do not have to settle every question that appears. When you notice yourself getting caught in a thought, gently return to the room, the surface beneath you, or one natural breath."),
             .init(start: 960, text: "For these next moments, see whether you can let go of checking how well you are resting. There is no particular experience you need to produce. You may feel quiet, restless, sleepy, or much the same as before. Whatever is here, you can meet it without turning it into another job. Let your attention be light. There is time for a little more silence."),
             .init(start: 1080, text: "Begin to notice sounds in the room and the space around your body. Feel your hands and feet. If you wish, make a small movement with your fingers, then your toes. Allow your eyes to open in their own time. Before you sit or stand, pause and notice how you feel. You might stay where you are for another moment. This session is coming to an end. Return to the rest of your day slowly.")
-        ]
+        ],
+        recording: "nsdr"
     )
 
     private static let nothingMoreTonight = GuidedSession(
@@ -76,6 +91,7 @@ struct GuidedSession: Identifiable, Equatable {
             .init(start: 840, text: "If imagining feels comfortable, picture a quiet room with soft evening light. There is nothing waiting for you there, and nothing you need to arrange. Or let the image go, and feel the real support beneath you. You do not need to see anything clearly. Let words, images, and thoughts pass without needing to follow them to an ending."),
             .init(start: 960, text: "You might return once to the intention you chose. For now, I can rest. Or your own words. Then let even those words become quiet. You do not need to keep listening closely. If you remain awake, that is all right. If sleep arrives, you do not need to resist it. Let this time be rest, without asking it to become anything else."),
             .init(start: 1080, text: "There is nothing more to follow tonight. Feel the support beneath you, if you wish, and let the guidance fall away. There will be quiet now. You do not need to reach for the phone when the recording ends. Rest in whatever way feels comfortable.")
-        ]
+        ],
+        recording: "yoga-nidra"
     )
 }
