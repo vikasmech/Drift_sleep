@@ -7,16 +7,34 @@ enum Theme {
         let sb = v == 0 ? 0 : 2 * (1 - ln / v)
         return Color(hue: h / 360, saturation: sb, brightness: v)
     }
-    static let background = Color.black
-    static let card = Color.white.opacity(0.06)
-    static let secondary = Color.white.opacity(0.12)
-    static let text = Color.white
-    static let amber = Color.white
-    static let onAmber = Color.black
-    static let muted = Color.white.opacity(0.45)
-    static let accent = Color.white.opacity(0.08)
+    static let background = Color(red: 10 / 255, green: 11 / 255, blue: 14 / 255)
+    static let lift = Color(red: 18 / 255, green: 20 / 255, blue: 26 / 255)
+    static let card = Color(red: 20 / 255, green: 22 / 255, blue: 28 / 255)
+    static let secondary = Color.white.opacity(0.08)
+    static let text = Color(red: 237 / 255, green: 236 / 255, blue: 232 / 255)
+    static let amber = text
+    static let onAmber = background
+    static let muted = Color(red: 125 / 255, green: 130 / 255, blue: 141 / 255)
+    static let quiet = Color(red: 82 / 255, green: 86 / 255, blue: 96 / 255)
+    static let accent = Color.white.opacity(0.06)
     static let danger = Color(red: 1, green: 0.55, blue: 0.48)
-    static let border = Color.white.opacity(0.1)
+    static let border = Color.white.opacity(0.07)
+    static let hairline = Color.white.opacity(0.07)
+}
+
+struct MidnightBackground: View {
+    var body: some View {
+        ZStack {
+            Theme.background
+            RadialGradient(
+                colors: [Theme.lift, Theme.background],
+                center: .center,
+                startRadius: 40,
+                endRadius: 460
+            )
+        }
+        .ignoresSafeArea()
+    }
 }
 
 struct Card<Content: View>: View {

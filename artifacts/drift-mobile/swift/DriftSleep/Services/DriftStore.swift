@@ -11,8 +11,7 @@ enum AppTab: Hashable {
 @MainActor
 final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     static let timerOptions = [15, 30, 45, 60, 90, 0]
-    @Published var tab: AppTab = .tonight
-    @Published var showChooser = true
+    @Published var tab: AppTab = .sounds
     @Published var selectedID: String { didSet { defaults.set(selectedID, forKey: "selected") } }
     @Published private(set) var currentID: String?
     @Published private(set) var state: PlayState = .idle
@@ -40,6 +39,12 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
         didSet {
             defaults.set(volume, forKey: "volume")
             player?.volume = Float(volume) * deadline.gain()
+        }
+    }
+    @Published var loops: Bool {
+        didSet {
+            defaults.set(loops, forKey: "loops")
+            player?.numberOfLoops = loops ? -1 : 0
         }
     }
     @Published var serverAddress: String {
@@ -96,6 +101,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
         let storedTimer = prefs.object(forKey: "timer") as? Int ?? 30
         timerMinutes = Self.timerOptions.contains(storedTimer) ? storedTimer : 30
         volume = min(1, max(0, prefs.object(forKey: "volume") as? Double ?? 0.7))
+        loops = prefs.object(forKey: "loops") as? Bool ?? true
         serverAddress = prefs.string(forKey: "server")
             ?? (Bundle.main.object(forInfoDictionaryKey: "DriftAudioServer") as? String)
             ?? ""
@@ -120,25 +126,6 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     func toggle(_ sound: Soundscape) {
         if currentID == sound.id && (state == .playing || state == .loading) { pause() }
         else { play(sound) }
-    }
-
-    func returnToChooser() {
-        stop()
-        showChooser = true
-    }
-
-    func chooseSound(_ id: String) {
-        guard let sound = Soundscape.find(id) else { return }
-        selectedID = sound.id
-        showChooser = false
-        tab = .tonight
-    }
-
-    func chooseGuided(_ id: String) {
-        guard let session = GuidedSession.find(id) else { return }
-        selectedID = session.id
-        showChooser = false
-        tab = .tonight
     }
 
     func selectSound(_ sound: Soundscape, autoplay: Bool = false) {
@@ -204,7 +191,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
                 try activateSession()
                 let next = try AVAudioPlayer(contentsOf: url)
                 next.delegate = self
-                next.numberOfLoops = -1
+                next.numberOfLoops = loops ? -1 : 0
                 next.volume = Float(volume)
                 next.isMeteringEnabled = true
                 guard next.prepareToPlay(), next.play() else { throw LibraryError.invalidAudio }
@@ -225,7 +212,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     func pause() {
-        if GuidedSession.find(currentID ?? "") != nil {
+        if GuidedSession.find(currentID ?? "") != nil, player == nil {
             captureGuidedElapsed()
             narrator.pause()
             resumeAfterInterruption = false
@@ -247,8 +234,14 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     func resume() {
         if let session = GuidedSession.find(currentID ?? "") {
-            if state == .paused { resumeGuided() }
-            else if state != .playing { playGuided(session) }
+            if player != nil {
+                if state == .paused { resumeRecordedGuide() }
+                else if state != .playing { playGuided(session) }
+            } else if state == .paused {
+                resumeGuided()
+            } else if state != .playing {
+                playGuided(session)
+            }
             return
         }
         guard let sound = currentSound else { return }
@@ -334,7 +327,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     func checkDeadline() {
-        if GuidedSession.find(currentID ?? "") != nil {
+        if let session = GuidedSession.find(currentID ?? ""), session.recording == nil, player == nil {
             advanceGuided()
             return
         }
@@ -372,13 +365,15 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     private func updateNowPlaying() {
-        if let session = GuidedSession.find(currentID ?? "") {
+            if let session = GuidedSession.find(currentID ?? "") {
+            let elapsed = player?.currentTime ?? guidedPosition
+            let length = player?.duration ?? session.duration
             MPNowPlayingInfoCenter.default().nowPlayingInfo = [
                 MPMediaItemPropertyTitle: session.title,
                 MPMediaItemPropertyArtist: "Drift",
                 MPMediaItemPropertyAlbumTitle: session.practice,
-                MPMediaItemPropertyPlaybackDuration: session.duration,
-                MPNowPlayingInfoPropertyElapsedPlaybackTime: guidedPosition,
+                MPMediaItemPropertyPlaybackDuration: length,
+                MPNowPlayingInfoPropertyElapsedPlaybackTime: elapsed,
                 MPNowPlayingInfoPropertyPlaybackRate: state == .playing ? 1.0 : 0.0
             ]
             return
@@ -462,6 +457,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
             guard let self, let player, self.player === player else { return }
             self.deadline.clear()
             self.remainingSeconds = nil
+            self.endWave()
             self.state = flag ? .ended : .error
             self.errorMessage = flag ? nil : "Playback stopped unexpectedly. Tap play to retry."
             self.clearNowPlaying()
@@ -485,7 +481,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
             return
         }
         if currentID == session.id, state == .paused {
-            resumeGuided()
+            if player != nil { resumeRecordedGuide() } else { resumeGuided() }
             return
         }
         invalidatePending()
@@ -498,10 +494,59 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
         errorMessage = nil
         deadline.clear()
         remainingSeconds = nil
+        if session.practice == "NSDR" || session.recording != nil {
+            guard let url = session.recordingURL else {
+                state = .error
+                errorMessage = "The recording is missing from the app."
+                return
+            }
+            narrator.stop()
+            playRecordedGuide(url)
+            return
+        }
         do {
             try activateSession()
             guidedAnchor = Date()
             advanceGuided()
+            beginWave()
+            updateNowPlaying()
+        } catch {
+            state = .error
+            errorMessage = error.localizedDescription
+            deactivateSession()
+        }
+    }
+
+    private func playRecordedGuide(_ url: URL) {
+        narrator.stop()
+        do {
+            let next = try AVAudioPlayer(contentsOf: url)
+            next.delegate = self
+            next.numberOfLoops = loops ? -1 : 0
+            next.volume = Float(volume)
+            next.isMeteringEnabled = true
+            player = next
+            try activateSession()
+            guard next.prepareToPlay(), next.play() else { throw LibraryError.invalidAudio }
+            startDeadline()
+            beginWave()
+            updateNowPlaying()
+        } catch {
+            state = .error
+            errorMessage = error.localizedDescription
+            deactivateSession()
+        }
+    }
+
+    private func resumeRecordedGuide() {
+        guard state == .paused, let player else { return }
+        do {
+            try activateSession()
+            player.volume = Float(volume)
+            guard player.play() else { throw LibraryError.invalidAudio }
+            state = .playing
+            errorMessage = nil
+            startDeadline()
             beginWave()
             updateNowPlaying()
         } catch {
@@ -550,6 +595,10 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     private func finishGuided(_ session: GuidedSession) {
+        if loops {
+            playGuided(session)
+            return
+        }
         narrator.stop()
         guidedAnchor = nil
         guidedElapsed = 0
