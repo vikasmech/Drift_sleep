@@ -24,24 +24,9 @@ to the App Store. Run the Xcode build and device checks below before relying on 
 
 No Node, pnpm or backend process is needed to build this Swift target.
 
-### If you clone the repository instead of using the ZIP
-
-Audio files are intentionally excluded from Git. The canonical masters remain
-in App Storage. To put the five WAVs in the application bundle, run:
-
-```sh
-cd artifacts/drift-mobile/swift
-bash scripts/prepare-audio.sh https://YOUR-UPDATED-HTTPS-BACKEND
-open DriftSleep.xcodeproj
-```
-
-The script needs `curl` and Python 3. It validates mono 16-bit 32 kHz lossless
-WAVs before moving each file into Resources. Do not substitute MP3s or add
-intro/outro fades to looping assets.
-
-The bundled Mac ZIP already contains these files; this step is not necessary
-for that download. Xcode automatically includes Resources through its
-synchronized source folder.
+The five free WAV loops are in `DriftSleep/Resources` and are included in a
+clone. Xcode picks them up through its synchronized source folder. `scripts/prepare-audio.sh`
+can still download and check those files if you need to replace them.
 
 ## Features implemented in source
 
