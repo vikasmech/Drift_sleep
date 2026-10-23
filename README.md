@@ -12,7 +12,7 @@ This repository is a pnpm workspace. The iPhone app to open is the native Swift 
 - Favourites, a usual sound, volume, and a sleep timer (15, 30, 45, 60, or 90 minutes, or off) with a short fade at the end.
 - Playback continues with the screen locked. The lock screen can play, pause, and stop.
 
-NSDR and Yoga Nidra are playable. **A little space** and **Room to rest** play `DriftSleep/Resources/nsdr.mp3`. **Nothing more tonight** plays `DriftSleep/Resources/yoga-nidra.mp3`. The original scripts are in `content/guided-rest`.
+NSDR and Yoga Nidra are playable. **A little space** plays `DriftSleep/Resources/nsdr.mp3`. **Nothing more tonight** plays `DriftSleep/Resources/yoga-nidra.mp3`. The original scripts are in `content/guided-rest`.
 
 The sounds are generated and synthesized beds, not a set of separately licensed field recordings.
 
