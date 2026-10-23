@@ -30,7 +30,7 @@ struct GuidedSession: Identifiable, Equatable {
 
     static func find(_ id: String) -> GuidedSession? { all.first { $0.id == id } }
 
-    static let all: [GuidedSession] = [littleSpace, roomToRest, nothingMoreTonight]
+    static let all: [GuidedSession] = [littleSpace, nothingMoreTonight]
 
     private static let littleSpace = GuidedSession(
         id: "little-space",
@@ -49,27 +49,6 @@ struct GuidedSession: Identifiable, Equatable {
             .init(start: 420, text: "For a little while, there will be fewer words. Thoughts may arrive. You do not need to finish them or push them away. Whenever you notice that you have wandered, return to a point of contact beneath you, or to an ordinary breath. Begin again as gently as you can."),
             .init(start: 480, text: "There is no score for this rest. Being distracted does not mean you have done it wrong. Notice one thing that is here now: a sound, the touch of clothing, or the movement of a breath. Let that be enough for the next few moments."),
             .init(start: 540, text: "Begin to notice more of the room around you. Feel your fingers and toes, and move them if you wish. Let your eyes open when you are ready. Before sitting or standing, take your time and check how you feel. This session is ending. You can return to your day at your own pace.")
-        ],
-        recording: "nsdr"
-    )
-
-    private static let roomToRest = GuidedSession(
-        id: "room-to-rest",
-        title: "Room to rest",
-        detail: "Twenty minutes of guided rest, with time between the words.",
-        practice: "NSDR",
-        duration: 1200,
-        segments: [
-            .init(start: 0, text: "Welcome to Drift. This is time for guided rest, not a task to complete. Settle somewhere safe and stationary, lying down or sitting with comfortable support. Do not listen while driving. You can keep your eyes open or let them close. Adjust anything that needs adjusting. There is no need to wait for the perfect position, and no need to stay in a position that hurts."),
-            .init(start: 120, text: "You remain in charge of this practice. You can move, skip an instruction, or stop whenever you need to. If attention inside the body does not feel helpful, notice a sound nearby, or look at something steady in the room. For now, feel one place where you are supported. Perhaps the back of your head, your hands, or your feet. Let that simple contact be your starting point."),
-            .init(start: 240, text: "Notice a breath arriving, then leaving. You do not need to slow it down, hold it, or make it larger. If breathing feels comfortable to follow, stay with a few ordinary breaths. If not, return to the support beneath you. There is nothing special you need to feel. Each time your attention wanders, you can return to whichever point feels most neutral and easy."),
-            .init(start: 360, text: "Bring your attention toward your forehead and the space around your eyes. Notice your cheeks, your mouth, and your jaw. Let your tongue rest comfortably. Include your neck and both shoulders. Rather than trying to remove every bit of tension, simply notice what is present. A small amount of ease is welcome. No change at all is welcome too. You are not required to feel a particular way."),
-            .init(start: 480, text: "Notice your right shoulder, upper arm, elbow, forearm and hand. Allow time to feel the right palm and fingers, or simply think of them. Then move your attention to your left shoulder, upper arm, elbow, forearm and hand. Both hands can rest. Both arms can rest. If you would rather change position, do so slowly, then find a comfortable point of contact again."),
-            .init(start: 600, text: "Let attention move to the places where your back meets its support. Notice your upper back, then the area around your waist. Include the front of your body: the small movements of your ribs and belly, without changing them. If these areas do not feel comfortable to notice, choose your hands instead. Let the next few moments be simple. Feel one point of support, and allow breathing to continue."),
-            .init(start: 720, text: "Notice your hips, then your right thigh, knee, lower leg and foot. Let attention reach the heel, sole and toes. Now your left thigh, knee, lower leg and foot. There is no need to compare the two sides. Sensation may be clear, faint, or absent. You can include each part without needing to find anything. Let your legs be supported, just as they are."),
-            .init(start: 840, text: "Now there is less to follow. You might sense the body as a whole, or stay with one comfortable point of contact. Sounds can come and go. Thoughts can come and go. You do not have to settle every question that appears. When you notice yourself getting caught in a thought, gently return to the room, the surface beneath you, or one natural breath."),
-            .init(start: 960, text: "For these next moments, see whether you can let go of checking how well you are resting. There is no particular experience you need to produce. You may feel quiet, restless, sleepy, or much the same as before. Whatever is here, you can meet it without turning it into another job. Let your attention be light. There is time for a little more silence."),
-            .init(start: 1080, text: "Begin to notice sounds in the room and the space around your body. Feel your hands and feet. If you wish, make a small movement with your fingers, then your toes. Allow your eyes to open in their own time. Before you sit or stand, pause and notice how you feel. You might stay where you are for another moment. This session is coming to an end. Return to the rest of your day slowly.")
         ],
         recording: "nsdr"
     )
