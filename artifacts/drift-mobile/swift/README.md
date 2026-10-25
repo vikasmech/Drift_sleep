@@ -5,14 +5,15 @@ There is no React Native, Expo, JavaScript runtime, CocoaPods, XcodeGen or third
 Swift package dependency in this target. The original Expo and web apps are preserved
 elsewhere in the repository.
 
-**Validation status:** written and statically checked in a Linux workspace. It has
-not been compiled, launched in an iOS simulator, tested on an iPhone, or submitted
-to the App Store. Run the Xcode build and device checks below before relying on it.
+**Validation status:** Debug builds have been launched on the iPhone 16 Pro
+simulator. This is not an App Store submission build and has not been tested on a
+physical iPhone. Apple currently requires Xcode 26 and the iOS 26 SDK for uploads.
 
 ## Open on your Mac
 
-1. Install **Xcode 16 or later** and an iOS simulator runtime. This project uses
-   Xcode 16's synchronized folders and targets **iOS 17 or later**.
+1. Install **Xcode 16 or later** and an iOS simulator runtime for development. Use
+   **Xcode 26 or later with the iOS 26 SDK** for App Store uploads. This project uses
+   synchronized folders and targets **iOS 17 or later**.
 2. Unzip the supplied Mac project download. It includes the five lossless free
    sounds, so they work offline from the first launch.
 3. Open **DriftSleep.xcodeproj**. Select the **DriftSleep** scheme and an iPhone
@@ -34,9 +35,12 @@ can still download and check those files if you need to replace them.
 - Sounds: all 30 existing entries and category filters.
 - Five free sounds use local lossless PCM and `AVAudioPlayer.numberOfLoops = -1`.
   Repetition does not depend on a network request or a seek/restart callback.
-- Remaining 25 entries play **bounded, non-looping previews**, not full premium
-  masters. The decoder rejects previews over 31 seconds. No purchase/unlock flow
-  has been added.
+- Remaining 25 entries play bounded, non-looping previews during the free trial.
+  Drift Plus customers use separate full-length tracks named
+  `full-<sound-id>.mp3`; the decoder rejects a preview as a full track.
+- The five free sounds stay available after the trial. The seven-day preview is
+  a free, one-time StoreKit non-consumable; Drift Plus is a separate paid
+  non-consumable with a restore action.
 - Favourites, usual sound, timer, volume and backend preference persist locally.
 - Bundled sounds are offline-ready immediately. A build without bundled files
   can download the five free sounds from an updated backend, validate them,
@@ -48,8 +52,8 @@ can still download and check those files if you need to replace them.
   handling, and pause on disconnected headphones.
 - 15/30/45/60/90-minute timers or no timer, with an eight-second ending fade.
   Pausing cancels the countdown; resuming starts the selected timer again.
-- NSDR/Yoga Nidra are **original scripts only**, not recordings or playable
-  library entries. No third-party guided recording has been copied.
+- NSDR and Yoga Nidra play from the bundled recordings `nsdr.mp3` and
+  `yoga-nidra.mp3`. The original scripts are in `content/guided-rest`.
 
 ## Backend
 
@@ -60,10 +64,10 @@ https://one-tap-sleep-sounds.replit.app
 ```
 
 This URL was obtained from the deployment service, not inferred from a preview URL.
-At preparation time its health route and premium preview route responded, but its
-new `loop-v2-*.wav` route returned 404. The ZIP's bundled WAVs avoid that problem
-for the five free sounds. To support downloads after a Git clone, the backend must
-first be updated to serve the current WAV assets.
+The five free loops are bundled. Twenty paid sounds also include a bundled
+`full-<sound-id>.mp3` bed. The five music sounds still use the short server
+preview until a longer file is added. The upload script reads
+`generated-artifacts/full-audio/full-<sound-id>.mp3`.
 
 You can edit the full HTTPS base address in the app's **Settings → Audio server**,
 or change `DriftAudioServer` in `DriftSleep/Info.plist` before building. Do not put
@@ -76,6 +80,7 @@ The API routes remain:
 GET /api/healthz
 GET /api/audio/loop-v2-gentle-rain.wav
 GET /api/audio/native-rain-on-glass.mp3
+GET /api/audio/full-rain-on-glass.mp3
 ```
 
 The iPhone app does not require direct storage credentials. Keep App Storage
@@ -115,18 +120,20 @@ Before an overnight session or release:
 4. Receive a call or Siri interruption; confirm pause and permitted resume.
    Disconnect headphones and confirm that playback pauses, not suddenly plays
    through the speaker.
-5. Try each premium preview. Confirm it ends naturally in around 30 seconds,
-   cannot repeat automatically and is not available as an offline free loop.
+5. Confirm each preview ends once, and that purchased full tracks loop only when
+   the Loop control is on. Verify locked content and restore using StoreKit sandbox.
 6. Test font sizes, VoiceOver, narrow iPhones, saved preferences after relaunch,
    download failures and rapid play/pause/sound switching.
 
 ## App Store preparation still needed
 
-Select a signing team and final bundle identifier, verify privacy disclosures
-against the finished app/backend, supply screenshots and store metadata, and
-perform the device tests above. The included privacy manifest declares no
+Select a signing team and final bundle identifier. Configure `com.drift.sleep.trial7days`
+as a zero-price non-consumable named **7-day Trial**, and `com.drift.sleep.plus`
+as the paid non-consumable. Verify privacy disclosures against the finished
+app/backend, supply screenshots and store metadata, and perform the device tests
+above. Ensure trial duration, post-trial access, and the one-time price are clear
+before the trial begins. The included privacy manifest declares no
 tracking and local UserDefaults use; the backend may still maintain ordinary
 server access logs. Review that behavior before submitting privacy answers.
 
-No App Store submission, TestFlight upload, purchase verification, paid unlock
-or human/AI narration recording is performed by this rewrite.
+No App Store submission or TestFlight upload has been performed.
