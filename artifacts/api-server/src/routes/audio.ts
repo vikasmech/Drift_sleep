@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { audioFile, audioNames, loopAudioNames } from "../lib/audio-storage";
+import { audioFile, audioNames, fullTrackAudioNames, loopAudioNames } from "../lib/audio-storage";
 
 const router = Router();
 
 router.get("/audio/:name", async (req, res) => {
   const lossless = req.params.name.endsWith(".wav");
   const name = req.params.name.replace(/\.(mp3|wav)$/, "");
-  if (!(lossless ? loopAudioNames : audioNames).includes(name)) {
+  const mp3Names = [...audioNames, ...fullTrackAudioNames];
+  const wavNames = [...new Set([...loopAudioNames, ...mp3Names])];
+  if (!(lossless ? wavNames : mp3Names).includes(name)) {
     res.status(404).json({ error: "Sound not found." });
     return;
   }

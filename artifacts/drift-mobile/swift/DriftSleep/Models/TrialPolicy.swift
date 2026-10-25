@@ -18,3 +18,24 @@ enum TrialPolicy {
         return Int(ceil(left / 86_400))
     }
 }
+
+enum PaywallPolicy {
+    /// The purchase screen appears on its own only after the preview has ended, and only until it is dismissed.
+    static func shouldPresentAutomatically(isPurchased: Bool, trialDaysRemaining: Int, dismissedAfterTrial: Bool) -> Bool {
+        !isPurchased && trialDaysRemaining == 0 && !dismissedAfterTrial
+    }
+}
+
+enum PlaybackPolicy {
+    static func canPlay(isFreeSound: Bool, hasPlusAccess: Bool) -> Bool {
+        isFreeSound || hasPlusAccess
+    }
+
+    static func isLoopable(isFreeSound: Bool, isPurchased: Bool) -> Bool {
+        isFreeSound || isPurchased
+    }
+
+    static func loopCount(isFreeSound: Bool, isPurchased: Bool, looping: Bool) -> Int {
+        isLoopable(isFreeSound: isFreeSound, isPurchased: isPurchased) && looping ? -1 : 0
+    }
+}

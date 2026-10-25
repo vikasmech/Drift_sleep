@@ -80,7 +80,14 @@ Expected object names:
 ```text
 public/drift/audio/loop-v2-gentle-rain.wav
 public/drift/audio/native-<sound-id>.mp3
+public/drift/audio/full-<paid-sound-id>.mp3
 ```
+
+The iPhone app uses `native-<sound-id>.mp3` as a short preview during the trial.
+After the one-time Drift Plus purchase, paid sounds use the separate
+`full-<sound-id>.mp3` objects. Add those full tracks under
+`artifacts/api-server/generated-artifacts/full-audio/` and upload them with the
+API server's full-audio upload script before enabling the purchase in production.
 
 ## Checks
 

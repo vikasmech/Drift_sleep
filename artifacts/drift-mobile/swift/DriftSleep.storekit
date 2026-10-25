@@ -5,12 +5,27 @@
   ],
   "products" : [
     {
+      "displayPrice" : "0.00",
+      "familyShareable" : false,
+      "internalID" : "F7D4A2C1",
+      "localizations" : [
+        {
+          "description" : "Try Drift Plus for 7 days. Five sounds remain free after the preview.",
+          "displayName" : "7-day Trial",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.drift.sleep.trial7days",
+      "referenceName" : "7-day Trial",
+      "type" : "NonConsumable"
+    },
+    {
       "displayPrice" : "9.99",
       "familyShareable" : false,
       "internalID" : "B19E4D70",
       "localizations" : [
         {
-          "description" : "Unlock the full Drift library after the 7-day preview.",
+          "description" : "One-time unlock for all full-length sounds and guided sessions.",
           "displayName" : "Drift Plus",
           "locale" : "en_US"
         }

@@ -17,12 +17,14 @@ struct GuidedSession: Identifiable, Equatable {
     var recordingURL: URL? {
         guard let recording else { return nil }
         let bundle = Bundle.main
-        let candidates = [
-            bundle.url(forResource: recording, withExtension: "mp3"),
-            bundle.url(forResource: recording, withExtension: "mp3", subdirectory: "Resources"),
-            bundle.bundleURL.appendingPathComponent("\(recording).mp3"),
-            bundle.bundleURL.appendingPathComponent("Resources/\(recording).mp3")
-        ]
+        let candidates = ["mp3", "wav"].flatMap { ext in
+            [
+                bundle.url(forResource: recording, withExtension: ext),
+                bundle.url(forResource: recording, withExtension: ext, subdirectory: "Resources"),
+                bundle.bundleURL.appendingPathComponent("\(recording).\(ext)"),
+                bundle.bundleURL.appendingPathComponent("Resources/\(recording).\(ext)")
+            ]
+        }
         return candidates.compactMap { $0 }.first { FileManager.default.fileExists(atPath: $0.path) }
     }
 

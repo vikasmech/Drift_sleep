@@ -106,7 +106,9 @@ struct TonightView: View {
             }
             HStack(spacing: 10) {
                 timerChip
-                loopChip
+                if session == nil && PlaybackPolicy.isLoopable(isFreeSound: sound.isFree, isPurchased: store.isPurchased) {
+                    loopChip
+                }
             }
             HStack(spacing: 12) {
                 Image(systemName: "speaker.fill")

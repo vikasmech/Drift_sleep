@@ -2,13 +2,14 @@ import AVFoundation
 import Foundation
 
 enum LibraryError: LocalizedError {
-    case invalidServer, unavailable, invalidAudio, previewOnly
+    case invalidServer, unavailable, invalidAudio, previewOnly, outputUnavailable
     var errorDescription: String? {
         switch self {
         case .invalidServer: return "Enter a valid HTTPS audio server address in Settings."
         case .unavailable: return "Audio is unavailable. Check your connection and audio server, then try again."
         case .invalidAudio: return "The server returned an invalid audio file. The previous download has been kept."
         case .previewOnly: return "Only the five free sounds can be saved for unlimited listening."
+        case .outputUnavailable: return "The speaker didn't start. Tap retry."
         }
     }
 }
@@ -83,16 +84,59 @@ final class AudioLibrary {
         return try await task.value
     }
 
+    func bundledFull(_ sound: Soundscape) -> URL? {
+        guard !sound.isFree else { return nil }
+        return firstValid(sound.fullFilenames, fullTrack: true)
+    }
+
     func preview(_ sound: Soundscape, server: String) async throws -> URL {
-        guard !sound.isFree, Self.serverURL(server) != nil else { throw LibraryError.invalidServer }
-        let (temporary, _) = try await fetchAudio(server: server, filename: sound.filename)
-        do {
-            try validate(temporary, freeLoop: false)
-            return temporary
-        } catch {
-            try? FileManager.default.removeItem(at: temporary)
-            throw error
+        guard !sound.isFree else { throw LibraryError.previewOnly }
+        if let bundled = firstValid(sound.previewFilenames, fullTrack: false) { return bundled }
+        guard Self.serverURL(server) != nil else { throw LibraryError.invalidServer }
+        return try await fetchFirst(server: server, filenames: sound.remotePreviewFilenames, fullTrack: false)
+    }
+
+    func fullTrack(_ sound: Soundscape, server: String) async throws -> URL {
+        guard !sound.isFree else { throw LibraryError.previewOnly }
+        if let bundled = firstValid(sound.fullFilenames, fullTrack: true) { return bundled }
+        guard Self.serverURL(server) != nil else { throw LibraryError.invalidServer }
+        return try await fetchFirst(server: server, filenames: sound.remoteFullFilenames, fullTrack: true)
+    }
+
+    private func firstValid(_ filenames: [String], fullTrack: Bool) -> URL? {
+        for name in filenames {
+            guard let url = locateInBundle(name) else { continue }
+            if fullTrack {
+                if (try? validateFull(url)) != nil { return url }
+            } else if (try? validate(url, freeLoop: false)) != nil {
+                return url
+            }
         }
+        return nil
+    }
+
+    private func fetchFirst(server: String, filenames: [String], fullTrack: Bool) async throws -> URL {
+        var lastError: Error = LibraryError.unavailable
+        for name in filenames {
+            do {
+                let (temporary, _) = try await fetchAudio(server: server, filename: name)
+                do {
+                    if fullTrack { try validateFull(temporary) } else { try validate(temporary, freeLoop: false) }
+                    return temporary
+                } catch {
+                    try? FileManager.default.removeItem(at: temporary)
+                    throw error
+                }
+            } catch {
+                lastError = error
+            }
+        }
+        throw lastError
+    }
+
+    private func validateFull(_ url: URL) throws {
+        let audio = try AVAudioPlayer(contentsOf: url)
+        guard audio.duration.isFinite, audio.duration > 31 else { throw LibraryError.invalidAudio }
     }
 
     func validate(_ url: URL, freeLoop: Bool) throws {

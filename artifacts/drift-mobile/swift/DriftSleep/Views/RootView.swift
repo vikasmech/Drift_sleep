@@ -4,6 +4,20 @@ struct RootView: View {
     @EnvironmentObject private var store: DriftStore
 
     var body: some View {
+        Group {
+            if store.showOneTap {
+                OneTapView()
+            } else {
+                tabs
+            }
+        }
+        .tint(Theme.amber)
+        .fullScreenCover(isPresented: $store.showPaywall, onDismiss: { store.dismissPaywall() }) {
+            PaywallView().environmentObject(store)
+        }
+    }
+
+    private var tabs: some View {
         TabView(selection: $store.tab) {
             TonightView()
                 .tabItem { Label("Tonight", systemImage: "moon.stars") }
@@ -17,10 +31,6 @@ struct RootView: View {
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(AppTab.settings)
-        }
-        .tint(Theme.amber)
-        .fullScreenCover(isPresented: $store.showPaywall, onDismiss: { store.dismissPaywall() }) {
-            PaywallView().environmentObject(store)
         }
     }
 }

@@ -29,6 +29,7 @@ export const audioNames = [
   ...nativeSoundIds.map(id => `native-${id}`),
 ];
 export const loopAudioNames = nativeSoundIds.slice(0, 5).map(id => `loop-v2-${id}`);
+export const fullTrackAudioNames = nativeSoundIds.slice(5).map(id => `full-${id}`);
 
 export function audioFile(name: string, extension: "mp3" | "wav" = "mp3") {
   const bucket = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;

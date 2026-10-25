@@ -7,10 +7,16 @@ struct Soundscape: Identifiable, Equatable {
     let category: String
     let isFree: Bool
 
-    var filename: String { isFree ? "loop-v2-\(id).wav" : "native-\(id).mp3" }
-    /// Published backend currently serves native MP3s; WAV loop-v2 routes 404.
+    var filename: String { isFree ? "loop-v2-\(id).wav" : previewFilename }
+    var previewFilename: String { "native-\(id).mp3" }
+    var fullFilename: String { "full-\(id).mp3" }
+    /// A WAV is accepted wherever an MP3 is. Bundled files prefer WAV. The server is asked for the MP3 first because that is what it serves today.
+    var previewFilenames: [String] { ["native-\(id).wav", "native-\(id).mp3"] }
+    var fullFilenames: [String] { ["full-\(id).wav", "full-\(id).mp3"] }
+    var remotePreviewFilenames: [String] { ["native-\(id).mp3", "native-\(id).wav"] }
+    var remoteFullFilenames: [String] { ["full-\(id).mp3", "full-\(id).wav"] }
     var playableFilenames: [String] {
-        isFree ? ["loop-v2-\(id).wav", "native-\(id).mp3"] : ["native-\(id).mp3"]
+        isFree ? ["loop-v2-\(id).wav", "native-\(id).wav", "native-\(id).mp3"] : previewFilenames
     }
 
     static let all: [Soundscape] = [

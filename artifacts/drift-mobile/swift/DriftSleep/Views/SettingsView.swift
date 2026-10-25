@@ -9,10 +9,12 @@ struct SettingsView: View {
     var body: some View {
         Screen(title: "Settings") {
             Card {
-                Text("Preview").font(.headline).foregroundStyle(Theme.text)
+                Text("Drift Plus").font(.headline).foregroundStyle(Theme.text)
                 Text(store.accessSummary).foregroundStyle(Theme.muted)
-                if !store.hasPremiumAccess {
-                    Button("Unlock Drift Plus") { store.showPaywall = true }
+                if !store.isPurchased {
+                    Button("Unlock Drift Plus") {
+                        store.showPaywall = true
+                    }
                         .buttonStyle(AmberButtonStyle())
                 }
             }
@@ -44,7 +46,7 @@ struct SettingsView: View {
     private var downloads: some View {
         Card {
             Text("Save for offline").font(.headline).foregroundStyle(Theme.text)
-            Text("The five included sounds play offline when they are in the app or saved here. The rest need a connection. Playback stays open for the 7-day preview, then Drift Plus.")
+            Text("Five sounds stay free and work offline. Start a 7-day free trial to explore the full catalog. After the trial, you can keep using the free sounds or unlock full tracks and guided sessions with Drift Plus. Paid sounds need a connection.")
                 .font(.footnote).foregroundStyle(Theme.muted)
             let busy = !store.downloadingIDs.isEmpty
             Button { Task { await store.downloadAll() } } label: {

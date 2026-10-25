@@ -9,6 +9,23 @@ final class DriftSleepTests: XCTestCase {
         XCTAssertEqual(TrialPolicy.daysRemaining(start: start, now: start.addingTimeInterval(6 * 86_400 + 3_600)), 1)
         XCTAssertFalse(TrialPolicy.isActive(start: start, now: start.addingTimeInterval(7 * 86_400)))
         XCTAssertEqual(TrialPolicy.daysRemaining(start: start, now: start.addingTimeInterval(7 * 86_400)), 0)
+        XCTAssertFalse(PaywallPolicy.shouldPresentAutomatically(isPurchased: false, trialDaysRemaining: 7, dismissedAfterTrial: false))
+        XCTAssertTrue(PaywallPolicy.shouldPresentAutomatically(isPurchased: false, trialDaysRemaining: 0, dismissedAfterTrial: false))
+        XCTAssertFalse(PaywallPolicy.shouldPresentAutomatically(isPurchased: false, trialDaysRemaining: 0, dismissedAfterTrial: true))
+        XCTAssertFalse(PaywallPolicy.shouldPresentAutomatically(isPurchased: true, trialDaysRemaining: 0, dismissedAfterTrial: false))
+    }
+
+    func testFreeSoundsStayAvailableAndPremiumPreviewsDoNotLoop() {
+        XCTAssertTrue(PlaybackPolicy.canPlay(isFreeSound: true, hasPlusAccess: false))
+        XCTAssertTrue(PlaybackPolicy.canPlay(isFreeSound: false, hasPlusAccess: true))
+        XCTAssertFalse(PlaybackPolicy.canPlay(isFreeSound: false, hasPlusAccess: false))
+        XCTAssertTrue(PlaybackPolicy.isLoopable(isFreeSound: true, isPurchased: false))
+        XCTAssertFalse(PlaybackPolicy.isLoopable(isFreeSound: false, isPurchased: false))
+        XCTAssertTrue(PlaybackPolicy.isLoopable(isFreeSound: false, isPurchased: true))
+        XCTAssertEqual(PlaybackPolicy.loopCount(isFreeSound: true, isPurchased: false, looping: true), -1)
+        XCTAssertEqual(PlaybackPolicy.loopCount(isFreeSound: true, isPurchased: false, looping: false), 0)
+        XCTAssertEqual(PlaybackPolicy.loopCount(isFreeSound: false, isPurchased: false, looping: true), 0)
+        XCTAssertEqual(PlaybackPolicy.loopCount(isFreeSound: false, isPurchased: true, looping: true), -1)
     }
 
     func testGuidedRestSessionsPlayOnceToTheirOwnEnding() {
@@ -31,6 +48,10 @@ final class DriftSleepTests: XCTestCase {
         ])
         XCTAssertEqual(Soundscape.find("gentle-rain")?.filename, "loop-v2-gentle-rain.wav")
         XCTAssertEqual(Soundscape.find("rain-on-glass")?.filename, "native-rain-on-glass.mp3")
+        XCTAssertEqual(Soundscape.find("rain-on-glass")?.fullFilename, "full-rain-on-glass.mp3")
+        XCTAssertEqual(Soundscape.find("rain-on-glass")?.previewFilenames, ["native-rain-on-glass.wav", "native-rain-on-glass.mp3"])
+        XCTAssertEqual(Soundscape.find("rain-on-glass")?.fullFilenames, ["full-rain-on-glass.wav", "full-rain-on-glass.mp3"])
+        XCTAssertEqual(Soundscape.find("white-noise")?.remotePreviewFilenames, ["native-white-noise.mp3", "native-white-noise.wav"])
     }
 
     func testDeadlineAndNativeFadeAreBasedOnAbsoluteTime() {
