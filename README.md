@@ -7,8 +7,8 @@ This repository is a pnpm workspace. The iPhone app to open is the native Swift 
 ## What’s in the app
 
 - Thirty sounds: rain, water, noise, fans, forest, and ambient music.
-- Five free loops: Gentle rain, Ocean waves, Brown noise, Pink noise, and Soft fan. These can play offline once the WAV files are in the app, and they repeat until you stop them or a sleep timer ends.
-- Twenty-five other sounds play a short preview, about 30 seconds. There is no purchase flow on this branch.
+- Five free loops: Gentle rain, Ocean waves, Brown noise, Pink noise, and Soft fan. They stay free after the trial, with or without a purchase. They ship in the app, play offline, and repeat until you stop them or a sleep timer ends.
+- Twenty-five Drift Plus sounds. A 7-day trial unlocks them. After that, Drift Plus (`com.drift.sleep.plus`) is a one-time $9.99 purchase, not a subscription. The paywall opens when you tap a Plus sound without access. It does not open on launch, and the five free sounds keep playing.
 - Favourites, a usual sound, volume, and a sleep timer (15, 30, 45, 60, or 90 minutes, or off) with a short fade at the end.
 - Playback continues with the screen locked. The lock screen can play, pause, and stop.
 
@@ -39,7 +39,7 @@ These five files are in `artifacts/drift-mobile/swift/DriftSleep/Resources` and 
 - `loop-v2-pink-noise.wav`
 - `loop-v2-soft-fan.wav`
 
-Each one is mono 16-bit 32 kHz PCM, about half a minute, and the app loops it. The other twenty-five sounds still stream a short MP3 from the audio server.
+Each one is mono 16-bit 32 kHz PCM, about half a minute, and the app loops it. These files use the bundled loop path, which accepts a loop longer than 31 seconds. The other twenty-five sounds stream from the audio server. That path rejects a file longer than 31 seconds. It plays during the 7-day trial and after Drift Plus is purchased.
 
 ## Other apps in this repo
 

@@ -55,13 +55,35 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     var selectedSound: Soundscape { Soundscape.find(selectedID) ?? usualSound }
     var isBusy: Bool { state == .loading }
     var hasPremiumAccess: Bool { isPurchased || trialDaysRemaining > 0 }
-    var accessSummary: String {
-        if isPurchased { return "Drift Plus is unlocked." }
-        if trialDaysRemaining == 1 { return "1 day left in your free preview." }
-        if trialDaysRemaining > 1 { return "\(trialDaysRemaining) days left in your free preview." }
-        return "Your free preview has ended."
-    }
     static let plusProductID = "com.drift.sleep.plus"
+    static let plusPriceLabel = "$9.99"
+    var plusPriceText: String {
+        guard let price = plusProduct?.displayPrice, !price.isEmpty else { return Self.plusPriceLabel }
+        if price.rangeOfCharacter(from: CharacterSet(charactersIn: "$€£¥")) != nil { return price }
+        return "$\(price)"
+    }
+    var accessSummary: String {
+        if isPurchased { return "Drift Plus is unlocked. All \(Soundscape.all.count) sounds are open." }
+        let plusCount = Soundscape.plus.count
+        if trialDaysRemaining == 1 {
+            return "1 day left in your 7-day trial of the \(plusCount) Plus sounds. Five sounds stay free."
+        }
+        if trialDaysRemaining > 1 {
+            return "\(trialDaysRemaining) days left in your 7-day trial of the \(plusCount) Plus sounds. Five sounds stay free."
+        }
+        return "The 7-day trial has ended. Five sounds stay free. Drift Plus is a one-time \(Self.plusPriceLabel) unlock, not a subscription."
+    }
+    var paywallLead: String {
+        "Five sounds stay free. Gentle rain, Ocean waves, Brown noise, Pink noise, and Soft fan keep looping, including offline."
+    }
+    var paywallOffer: String {
+        let unlock = "Drift Plus unlocks the other \(Soundscape.plus.count) sounds and guided rest once for \(plusPriceText). One purchase. No subscription."
+        if trialDaysRemaining > 0 {
+            let days = trialDaysRemaining == 1 ? "1 day" : "\(trialDaysRemaining) days"
+            return "\(days) left in the 7-day trial. \(unlock)"
+        }
+        return "The 7-day trial has ended. \(unlock)"
+    }
 
     private let defaults: UserDefaults
     private let library = AudioLibrary()
@@ -75,7 +97,8 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     private var resumeAfterInterruption = false
     private var remoteTargets: [(MPRemoteCommand, Any)] = []
     private let trialStart: Date
-    private var didDismissPaywall = false
+    private let useLiveStore: Bool
+    private let scriptedRestore: (() async throws -> Bool)?
     private var transactionUpdates: Task<Void, Never>?
     private let narrator = GuidedNarrator()
     private var guidedElapsed: TimeInterval = 0
@@ -87,40 +110,61 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
     @Published private(set) var wave: [CGFloat] = Array(repeating: 0.2, count: 36)
     @Published private(set) var waveTime: CGFloat = 0
 
-    override init() {
-        let prefs = UserDefaults.standard
-        defaults = prefs
-        let usual = prefs.string(forKey: "usual") ?? "gentle-rain"
+    convenience override init() {
+        self.init(
+            defaults: .standard,
+            trialStart: nil,
+            initiallyPurchased: false,
+            scriptedRestore: nil,
+            useLiveStore: true,
+            now: Date()
+        )
+    }
+
+    init(
+        defaults: UserDefaults,
+        trialStart: Date?,
+        initiallyPurchased: Bool,
+        scriptedRestore: (() async throws -> Bool)?,
+        useLiveStore: Bool,
+        now: Date
+    ) {
+        self.defaults = defaults
+        self.useLiveStore = useLiveStore
+        self.scriptedRestore = scriptedRestore
+        let usual = defaults.string(forKey: "usual") ?? "gentle-rain"
         let resolvedUsual = Soundscape.find(usual)?.isFree == true ? usual : "gentle-rain"
         usualID = resolvedUsual
-        let storedSelected = prefs.string(forKey: "selected")
+        let storedSelected = defaults.string(forKey: "selected")
         selectedID = storedSelected.flatMap { Soundscape.find($0)?.id ?? GuidedSession.find($0)?.id } ?? resolvedUsual
-        favourites = Set((prefs.stringArray(forKey: "favourites") ?? []).filter {
+        favourites = Set((defaults.stringArray(forKey: "favourites") ?? []).filter {
             Soundscape.find($0) != nil || GuidedSession.find($0) != nil
         })
-        let storedTimer = prefs.object(forKey: "timer") as? Int ?? 30
+        let storedTimer = defaults.object(forKey: "timer") as? Int ?? 30
         timerMinutes = Self.timerOptions.contains(storedTimer) ? storedTimer : 30
-        volume = min(1, max(0, prefs.object(forKey: "volume") as? Double ?? 0.7))
-        loops = prefs.object(forKey: "loops") as? Bool ?? true
-        serverAddress = prefs.string(forKey: "server")
+        volume = min(1, max(0, defaults.object(forKey: "volume") as? Double ?? 0.7))
+        loops = defaults.object(forKey: "loops") as? Bool ?? true
+        serverAddress = defaults.string(forKey: "server")
             ?? (Bundle.main.object(forInfoDictionaryKey: "DriftAudioServer") as? String)
             ?? ""
-        let started = TrialClock.startDate()
-        trialStart = started
-        trialDaysRemaining = TrialPolicy.daysRemaining(start: started, now: Date())
+        let started = trialStart ?? TrialClock.startDate(now: now)
+        self.trialStart = started
+        trialDaysRemaining = TrialPolicy.daysRemaining(start: started, now: now)
+        isPurchased = initiallyPurchased
         super.init()
         refreshDownloads()
+        guard useLiveStore else { return }
         configureCommands()
         observeAudioSession()
         listenForTransactions()
         ticker = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.checkDeadline() }
         }
-        Task { await bootstrapAccess() }
+        Task { await self.refreshAccess() }
     }
 
-    func canPlay(_: Soundscape) -> Bool {
-        hasPremiumAccess
+    func canPlay(_ sound: Soundscape) -> Bool {
+        sound.isFree || hasPremiumAccess
     }
 
     func toggle(_ sound: Soundscape) {
@@ -172,10 +216,12 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
         let generation = playGeneration
         playTask = Task { [weak self] in
             guard let self else { return }
+            guard generation == self.playGeneration, !Task.isCancelled else { return }
             var acquiredPreview: URL?
             do {
                 let url: URL
-                if sound.isFree {
+                // Free sounds use the bundled loop. preview() rejects audio longer than 31 seconds.
+                if sound.delivery == .unlimitedLoop {
                     downloadingIDs.insert(sound.id)
                     defer { downloadingIDs.remove(sound.id) }
                     url = try await library.ensure(sound, server: serverAddress)
@@ -668,11 +714,42 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     func dismissPaywall() {
         showPaywall = false
-        didDismissPaywall = true
     }
 
     func onForeground() {
-        Task { await reloadAccess(presentIfLocked: !didDismissPaywall) }
+        Task { await refreshAccess() }
+    }
+
+    /// Records a verified Drift Plus transaction. Purchase and tests share this path.
+    func applyVerifiedPurchase() {
+        isPurchased = true
+        purchaseError = nil
+        showPaywall = false
+    }
+
+    func updateTrialClock(now: Date = Date()) {
+        trialDaysRemaining = TrialPolicy.daysRemaining(start: trialStart, now: now)
+        stopPremiumIfAccessEnded()
+    }
+
+    func refreshAccess(now: Date = Date()) async {
+        if useLiveStore {
+            await loadProducts()
+            await refreshEntitlements()
+        }
+        updateTrialClock(now: now)
+    }
+
+    private func stopPremiumIfAccessEnded() {
+        let active = state == .playing || state == .paused || state == .loading
+        guard active else { return }
+        if let sound = currentSound {
+            if !canPlay(sound) { stop() }
+            return
+        }
+        if GuidedSession.find(currentID ?? "") != nil, !hasPremiumAccess {
+            stop()
+        }
     }
 
     func purchasePlus() async {
@@ -693,8 +770,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
                     return
                 }
                 await transaction.finish()
-                isPurchased = true
-                showPaywall = false
+                applyVerifiedPurchase()
             case .userCancelled, .pending:
                 break
             @unknown default:
@@ -710,30 +786,17 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
         isPurchasing = true
         defer { isPurchasing = false }
         do {
-            try await AppStore.sync()
-            await refreshEntitlements()
+            if let scriptedRestore {
+                isPurchased = try await scriptedRestore()
+            } else {
+                try await AppStore.sync()
+                await refreshEntitlements()
+            }
             if isPurchased { showPaywall = false }
             else { purchaseError = "No Drift Plus purchase was found for this Apple ID." }
         } catch {
             purchaseError = error.localizedDescription
         }
-    }
-
-    private func bootstrapAccess() async {
-        await reloadAccess(presentIfLocked: true)
-    }
-
-    private func reloadAccess(presentIfLocked: Bool) async {
-        await loadProducts()
-        await refreshEntitlements()
-        trialDaysRemaining = TrialPolicy.daysRemaining(start: trialStart, now: Date())
-        if let sound = currentSound, !canPlay(sound),
-           state == .playing || state == .paused || state == .loading {
-            stop()
-            showPaywall = true
-            return
-        }
-        if presentIfLocked, !hasPremiumAccess { showPaywall = true }
     }
 
     private func loadProducts() async {
@@ -749,6 +812,7 @@ final class DriftStore: NSObject, ObservableObject, AVAudioPlayerDelegate {
             }
         }
         isPurchased = unlocked
+        if unlocked { showPaywall = false }
     }
 
     private func listenForTransactions() {

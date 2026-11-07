@@ -106,7 +106,7 @@ final class AudioLibrary {
                 guard format == kAudioFormatLinearPCM else { throw LibraryError.invalidAudio }
             }
         } else {
-            // Reject full premium masters: a timer alone is not an access boundary.
+            // Plus streams stay short. Free loops use freeLoop and may run past 31 seconds.
             guard audio.duration <= 31 else { throw LibraryError.invalidAudio }
         }
     }

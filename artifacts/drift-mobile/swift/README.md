@@ -34,9 +34,14 @@ can still download and check those files if you need to replace them.
 - Sounds: all 30 existing entries and category filters.
 - Five free sounds use local lossless PCM and `AVAudioPlayer.numberOfLoops = -1`.
   Repetition does not depend on a network request or a seek/restart callback.
-- Remaining 25 entries play **bounded, non-looping previews**, not full premium
-  masters. The decoder rejects previews over 31 seconds. No purchase/unlock flow
-  has been added.
+  They stay playable after the 7-day trial, purchased or not.
+- The other 25 sounds are Drift Plus. They play during the 7-day trial and after
+  the one-time Drift Plus purchase (`com.drift.sleep.plus`, $9.99, non-consumable,
+  not a subscription). Without access, tapping one presents the paywall and does
+  not start playback. The paywall is not shown on launch, or merely because the
+  trial has expired.
+- Plus playback uses the server stream. The decoder rejects files over 31 seconds
+  on that path. Free loops do not use it, so a longer bundled loop still validates.
 - Favourites, usual sound, timer, volume and backend preference persist locally.
 - Bundled sounds are offline-ready immediately. A build without bundled files
   can download the five free sounds from an updated backend, validate them,
@@ -67,8 +72,9 @@ first be updated to serve the current WAV assets.
 
 You can edit the full HTTPS base address in the app's **Settings → Audio server**,
 or change `DriftAudioServer` in `DriftSleep/Info.plist` before building. Do not put
-API keys or protection-bypass tokens in the app. Previews require an internet
+API keys or protection-bypass tokens in the app. Plus sounds require an internet
 connection; errors are shown instead of silently substituting another sound.
+The five free sounds play from the app bundle.
 
 The API routes remain:
 
@@ -99,8 +105,11 @@ bash scripts/validate-mac.sh 'platform=iOS Simulator,id=YOUR_SIMULATOR_UDID'
 
 You can also press **Command-U** in Xcode. Tests cover the catalogue/free boundary,
 asset filenames, timer/fade math, backend address validation, packaged PCM files,
-and rejection of HTML masquerading as audio. These tests are included, **not
-claimed to have run in Linux**.
+rejection of HTML masquerading as audio, and Drift Plus access: a free sound
+still plays after the trial with no purchase, a Plus sound is blocked and opens
+the paywall in that state, a Plus sound plays during the trial, a Plus sound
+plays after purchase, and restore. These tests are included, **not claimed to
+have run in Linux**.
 
 ## Required device checks
 
@@ -115,8 +124,11 @@ Before an overnight session or release:
 4. Receive a call or Siri interruption; confirm pause and permitted resume.
    Disconnect headphones and confirm that playback pauses, not suddenly plays
    through the speaker.
-5. Try each premium preview. Confirm it ends naturally in around 30 seconds,
-   cannot repeat automatically and is not available as an offline free loop.
+5. With the trial expired and Drift Plus not purchased, tap a Plus sound and
+   confirm the paywall appears and nothing plays. Confirm a free sound still
+   loops offline. Restore or buy in the StoreKit test session and confirm the
+   Plus sound then plays. Plus files still cannot be saved as offline loops,
+   and a file longer than 31 seconds is rejected on that stream.
 6. Test font sizes, VoiceOver, narrow iPhones, saved preferences after relaunch,
    download failures and rapid play/pause/sound switching.
 
@@ -128,5 +140,7 @@ perform the device tests above. The included privacy manifest declares no
 tracking and local UserDefaults use; the backend may still maintain ordinary
 server access logs. Review that behavior before submitting privacy answers.
 
-No App Store submission, TestFlight upload, purchase verification, paid unlock
-or human/AI narration recording is performed by this rewrite.
+No App Store submission or TestFlight upload is performed by this project.
+Drift Plus purchase and restore are implemented with StoreKit
+(`com.drift.sleep.plus`, non-consumable, $9.99). The local StoreKit
+configuration is `DriftSleep.storekit`.
