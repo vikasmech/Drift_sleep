@@ -1,5 +1,11 @@
 import Foundation
 
+/// How a sound is loaded. Free loops never go through the 31-second preview check.
+enum SoundDelivery: Equatable {
+    case unlimitedLoop
+    case plusStream
+}
+
 struct Soundscape: Identifiable, Equatable {
     let id: String
     let title: String
@@ -12,6 +18,7 @@ struct Soundscape: Identifiable, Equatable {
     var playableFilenames: [String] {
         isFree ? ["loop-v2-\(id).wav", "native-\(id).mp3"] : ["native-\(id).mp3"]
     }
+    var delivery: SoundDelivery { isFree ? .unlimitedLoop : .plusStream }
 
     static let all: [Soundscape] = [
         .init(id: "gentle-rain", title: "Gentle rain", detail: "A soft, steady shower. Nothing to think about.", category: "Rain", isFree: true),
@@ -46,6 +53,7 @@ struct Soundscape: Identifiable, Equatable {
         .init(id: "last-light", title: "Last light", detail: "A warm, close version of the ambient pads.", category: "Music", isFree: false)
     ]
     static let free = all.filter(\.isFree)
+    static let plus = all.filter { !$0.isFree }
     static let categories = ["Rain", "Water", "Noise", "Nature", "Music"]
     static func find(_ id: String) -> Soundscape? { all.first { $0.id == id } }
 }

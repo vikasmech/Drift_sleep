@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-/// First-launch date for the 7-day preview. Keychain keeps the clock across reinstalls.
+/// First-launch date for the 7-day Drift Plus trial. Keychain keeps the clock across reinstalls.
 enum TrialClock {
     private static let service = "com.drift.sleep.native"
     private static let account = "trialStart"

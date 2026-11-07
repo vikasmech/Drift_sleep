@@ -106,6 +106,19 @@ struct SoundTile: View {
         store.currentID == sound.id && (store.state == .playing || store.state == .loading)
     }
 
+    private var mark: TileMark {
+        if sound.isFree { return .free }
+        return store.hasPremiumAccess ? .plus : .locked
+    }
+
+    private var playLabel: String {
+        switch mark {
+        case .free: return "Play \(sound.title), free"
+        case .plus: return "Play \(sound.title), Drift Plus"
+        case .locked: return "Play \(sound.title), Drift Plus, locked"
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button { store.selectSound(sound, autoplay: true) } label: {
@@ -113,11 +126,12 @@ struct SoundTile: View {
                     tint: AmbientTint.sound(sound),
                     kicker: sound.category.uppercased(),
                     title: sound.title,
-                    active: active
+                    active: active,
+                    mark: mark
                 )
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Play \(sound.title)")
+            .accessibilityLabel(playLabel)
             heart(on: store.favourites.contains(sound.id)) { store.toggleFavourite(sound) }
                 .accessibilityLabel(store.favourites.contains(sound.id) ? "Remove \(sound.title) from favourites" : "Add \(sound.title) to favourites")
         }
@@ -132,6 +146,8 @@ struct GuidedTile: View {
         store.currentID == session.id && (store.state == .playing || store.state == .loading)
     }
 
+    private var mark: TileMark { store.hasPremiumAccess ? .plus : .locked }
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button { store.selectGuided(session, autoplay: true) } label: {
@@ -139,18 +155,23 @@ struct GuidedTile: View {
                     tint: AmbientTint.session(session),
                     kicker: session.practice.uppercased(),
                     title: session.title,
-                    active: active
+                    active: active,
+                    mark: mark
                 )
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Play \(session.title)")
+            .accessibilityLabel(store.hasPremiumAccess ? "Play \(session.title)" : "Play \(session.title), Drift Plus, locked")
             heart(on: store.favourites.contains(session.id)) { store.toggleFavourite(session.id) }
                 .accessibilityLabel(store.favourites.contains(session.id) ? "Remove \(session.title) from favourites" : "Add \(session.title) to favourites")
         }
     }
 }
 
-private func tileFace(tint: Color, kicker: String, title: String, active: Bool) -> some View {
+private enum TileMark {
+    case free, plus, locked
+}
+
+private func tileFace(tint: Color, kicker: String, title: String, active: Bool, mark: TileMark) -> some View {
     ZStack(alignment: .bottomLeading) {
         RoundedRectangle(cornerRadius: 22, style: .continuous)
             .fill(Theme.card)
@@ -182,10 +203,37 @@ private func tileFace(tint: Color, kicker: String, title: String, active: Bool) 
     }
     .frame(maxWidth: .infinity)
     .frame(height: 168)
+    .overlay(alignment: .topLeading) {
+        tileMark(mark)
+            .padding(14)
+            .accessibilityHidden(true)
+    }
     .overlay(
         RoundedRectangle(cornerRadius: 22, style: .continuous)
             .stroke(active ? Theme.text.opacity(0.28) : Theme.border, lineWidth: 1)
     )
+}
+
+@ViewBuilder
+private func tileMark(_ mark: TileMark) -> some View {
+    switch mark {
+    case .free:
+        Text("Free")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Theme.muted)
+    case .plus:
+        Text("Plus")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Theme.muted)
+    case .locked:
+        HStack(spacing: 4) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 9, weight: .semibold))
+            Text("Plus")
+        }
+        .font(.system(size: 11, weight: .medium))
+        .foregroundStyle(Theme.muted)
+    }
 }
 
 private func heart(on: Bool, action: @escaping () -> Void) -> some View {

@@ -10,6 +10,11 @@ struct TonightView: View {
     private var showing: Bool { store.currentID == store.selectedID }
     private var isPlaying: Bool { showing && (store.state == .playing || store.state == .loading) }
     private var isPaused: Bool { showing && store.state == .paused }
+    private var accessLine: String? {
+        if session != nil { return store.hasPremiumAccess ? nil : "Drift Plus" }
+        if sound.isFree { return "Free" }
+        return store.hasPremiumAccess ? nil : "Drift Plus"
+    }
 
     var body: some View {
         ZStack {
@@ -41,6 +46,11 @@ struct TonightView: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.7)
+                if let accessLine {
+                    Text(accessLine)
+                        .font(.footnote)
+                        .foregroundStyle(Theme.muted)
+                }
             }
             .frame(maxWidth: .infinity)
             Button { store.toggleFavourite(store.selectedID) } label: {
